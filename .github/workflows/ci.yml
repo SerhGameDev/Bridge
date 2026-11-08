@@ -23,3 +23,5 @@ jobs:
       - run: ./tools/Verify-Snippets.ps1
         shell: pwsh
       - run: dotnet pack src/Bridge.Core/Bridge.Core.csproj -c Release --no-build -o work/packages
+      - run: ./tools/Verify-Package.ps1
+        shell: pwsh

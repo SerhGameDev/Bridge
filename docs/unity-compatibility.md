@@ -5,10 +5,10 @@
 | Среда | Проверка | Результат |
 | --- | --- | --- |
 | Windows, .NET SDK 8.0.408, NuGet Newtonsoft.Json 13.0.4 | netstandard2.1, unit tests, console | PASS; подробности в отчётах этапов |
-| Unity 6000.6.7f1 (b22767f04f04) | Local UPM import, 8 EditMode NUnit tests | PASS 8/8, 0 skipped |
-| Unity 6000.7.0a2 (83605ec097c0) | Local UPM import, 8 EditMode NUnit tests | PASS 8/8, 0 skipped; alpha редактор |
+| Unity 6000.6.7f1 (b22767f04f04) | Local UPM import, 10 EditMode NUnit tests | PASS 10/10, 0 skipped |
+| Unity 6000.7.0a2 (83605ec097c0) | Local UPM import, 10 EditMode NUnit tests | PASS 10/10, 0 skipped; alpha редактор |
 | Unity 7 (7000.x) | Editor / player | SKIPPED: редактор не установлен |
-| Unity 6000.6.7f1 WebGL IL2CPP, High stripping | Build + player execution | PASS: Build exit 0; браузер WebGL 2.0, BRIDGE_SMOKE_PASS (2026-11-08 21:48 MSK) |
+| Unity 6000.6.7f1 WebGL IL2CPP, High stripping | Build + player execution | PASS: Build exit 0; браузер WebGL 2.0, BRIDGE_SMOKE_PASS (повторный запуск 2026-11-08 22:07 MSK) |
 
 Проверенные номера приведены точно по executable metadata. Успешная alpha-проверка не обещает совместимость с будущими final версиями. Unity 7 не заявляется проверенным.
 
@@ -45,4 +45,5 @@ python -m http.server 8765 --bind 127.0.0.1 --directory work/unity/webgl-smoke
 ```
 
 Откройте `http://127.0.0.1:8765/` в WebGL-совместимом браузере. Builder задаёт IL2CPP, High stripping и отключает WebGL compression, чтобы стандартный локальный HTTP server обслуживал артефакты без дополнительных MIME/Content-Encoding настроек. Build artifacts не входят в Git.
+
 

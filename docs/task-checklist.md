@@ -9,19 +9,20 @@
 - [x] 4: именованные ссылки, in-memory/file resolvers, root sandbox/paths/cycles/depth/files/size/cache/failure recovery, тесты и Console Sample с палитрой.
 - [x] 5: единый исходный код UPM/.NET, package/asmdef, Unity sample/EditMode NUnit, проверка установленных редакторов, фактическая IL2CPP проверка либо явное ограничение и runnable smoke, DTO preservation.
 - [x] 6: RU/EN README и quickstart; формат/API/query/refs/AOT/future docs; CI restore/build/test/pack; CONTRIBUTING/CHANGELOG/LICENSE/examples; реальные проверки.
-- [ ] 7: чистая сборка, acceptance matrix, исполняемые quickstart сниппеты, проверка артефактов/секретов/зависимостей, отчёт ОС/SDK/Unity/тесты/Git/ограничения и предложение v0.1.0.
+- [x] 7: чистая сборка, acceptance matrix, исполняемые quickstart сниппеты, проверка артефактов/секретов/зависимостей, отчёт ОС/SDK/Unity/тесты/Git/ограничения и предложение v0.1.0.
 
 ## Матрица acceptance
 
 | Группа | Доказательство |
 | --- | --- |
-| Строгий JSON, числа, Unicode, дубли, trailing data, лимиты | DocumentTests; дальнейшее расширение на этапах 2/7 |
+| Строгий JSON, числа, Unicode, дубли, trailing data, лимиты | DocumentTests + AcceptanceTests (независимый System.Text.Json oracle) |
 | Схема, отсутствующие поля, версии | DocumentTests |
-| CRUD, DTO, отсутствие тайной мутации | Этап 2 |
-| LINQ, фильтры, поля, limit, snapshots, отсутствие произвольных выражений | Этап 3 |
-| Локальные/внешние ссылки, циклы, sandbox, лимиты, восстановление | Этап 4 |
-| UTF-8, культура, вложенные значения/массивы, extensions, детерминизм | Этап 2 |
-| .NET Standard, Console, UPM, Editor, IL2CPP | Этапы 1/5/7 |
+| CRUD, DTO, отсутствие тайной мутации | MutationTests/AcceptanceTests PASS |
+| LINQ, фильтры, поля, limit, snapshots, отсутствие произвольных выражений | QueryTests/AcceptanceTests PASS |
+| Локальные/внешние ссылки, циклы, sandbox, лимиты, восстановление | ReferenceTests PASS, включая настоящий junction |
+| UTF-8, культура, вложенные значения/массивы, extensions, детерминизм | MutationTests/AcceptanceTests PASS |
+| .NET Standard, Console, UPM, Editor, IL2CPP | Clean build/package consumer, Unity 10/10 x2, WebGL IL2CPP PASS; Unity 7 unavailable |
+
 
 
 
