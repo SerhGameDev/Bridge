@@ -6,10 +6,21 @@
     <LangVersion>9.0</LangVersion>
     <Nullable>enable</Nullable>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <Version>0.1.0</Version>
+    <PackageId>Bridge.Core</PackageId>
+    <Authors>SershDev</Authors>
+    <Description>JSON block documents, deterministic projections and bounded references for .NET and Unity.</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryType>git</RepositoryType>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     <Compile Include="../../Packages/com.serhgamedev.bridge.core/Runtime/**/*.cs" LinkBase="Runtime" />
+    <None Include="../../README.md" Pack="true" PackagePath="/" />
+    <None Include="../../LICENSE" Pack="true" PackagePath="/" />
   </ItemGroup>
 </Project>
 

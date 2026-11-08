@@ -1,5 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net8.0</TargetFramework><Nullable>enable</Nullable></PropertyGroup>
+  <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net8.0</TargetFramework><Nullable>enable</Nullable><IsPackable>false</IsPackable></PropertyGroup>
   <ItemGroup><ProjectReference Include="../../src/Bridge.Core/Bridge.Core.csproj" /></ItemGroup>
   <ItemGroup><None Include="assets/**/*.bridge.json" CopyToOutputDirectory="PreserveNewest" /></ItemGroup>
 </Project>
