@@ -26,6 +26,14 @@ var selection = document.Query().WhereType("scene.layout").WhereId("factory.layo
 if (summaries.Count != 1 || selection.ToJson().Contains("privateNote")) throw new Exception("Query failed.");
 Console.WriteLine(selection.ToJson());
 Console.WriteLine("LINQ/fluent PASS");
+document.GetBlock("factory.layout").SetReference("palette", new BridgeReference("assets/palette.bridge.json", "common.palette"));
+var resolver = new FileBridgeDocumentResolver(AppContext.BaseDirectory);
+var palette = document.ResolveReference("factory.layout", "palette", resolver, "factory.bridge.json").Value;
+if (palette.Block.Get<string>("color") != "red") throw new Exception("Reference failed.");
+document.GetBlock("factory.layout").SetReference("escape", new BridgeReference("../outside.bridge.json", "x"));
+var rejected = document.ResolveReference("factory.layout", "escape", resolver, "factory.bridge.json");
+if (rejected.Success || rejected.Diagnostics[0].Code != "REFERENCE_PATH") throw new Exception("Sandbox check failed.");
+Console.WriteLine("External palette and sandbox PASS");
 if (args.Contains("--performance"))
 {
     foreach (int count in new[] { 1000, 10000 })
