@@ -18,3 +18,8 @@ Thumbs.db
 .vs/
 .idea/
 .vscode/
+
+# Local verification and artifacts
+work/
+TestResults/
+*.trx

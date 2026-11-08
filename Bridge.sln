@@ -7,6 +7,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{5351E8B4-C0E
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bridge.Core", "src\Bridge.Core\Bridge.Core.csproj", "{A4ABB46D-AFE7-43C3-A054-341004040E07}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{1A953166-59BF-4B8D-B764-F374AC6B11F6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bridge.Core.Tests", "tests\Bridge.Core.Tests\Bridge.Core.Tests.csproj", "{72E0EF00-12EC-4E10-B137-861E52B216E9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -20,8 +24,13 @@ Global
 		{A4ABB46D-AFE7-43C3-A054-341004040E07}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A4ABB46D-AFE7-43C3-A054-341004040E07}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A4ABB46D-AFE7-43C3-A054-341004040E07}.Release|Any CPU.Build.0 = Release|Any CPU
+		{72E0EF00-12EC-4E10-B137-861E52B216E9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{72E0EF00-12EC-4E10-B137-861E52B216E9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{72E0EF00-12EC-4E10-B137-861E52B216E9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{72E0EF00-12EC-4E10-B137-861E52B216E9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{A4ABB46D-AFE7-43C3-A054-341004040E07} = {5351E8B4-C0E5-4603-9F6E-70899A7E3177}
+		{72E0EF00-12EC-4E10-B137-861E52B216E9} = {1A953166-59BF-4B8D-B764-F374AC6B11F6}
 	EndGlobalSection
 EndGlobal

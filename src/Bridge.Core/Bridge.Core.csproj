@@ -3,11 +3,12 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <AssemblyName>Bridge.Core</AssemblyName>
     <RootNamespace>Bridge.Core</RootNamespace>
-    <LangVersion>latest</LangVersion>
+    <LangVersion>9.0</LangVersion>
     <Nullable>enable</Nullable>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     <Compile Include="../../Packages/com.serhgamedev.bridge.core/Runtime/**/*.cs" LinkBase="Runtime" />
   </ItemGroup>
 </Project>
