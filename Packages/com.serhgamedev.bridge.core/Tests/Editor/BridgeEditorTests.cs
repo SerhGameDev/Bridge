@@ -56,5 +56,17 @@ namespace Bridge.Core.EditorTests
         }
         [Test] public void QuerySpecRejectsArbitraryExpression()
         { Assert.Throws<BridgeException>(() => BridgeQuerySpec.FromJson("{\"queryVersion\":1,\"expression\":\"x => true\"}")); }
+        [Test] public void MalformedUnicodeIsRejectedWithoutReplacement()
+        {
+            Assert.Throws<BridgeException>(() => BridgeValue.Parse("\"\\uD800\""));
+            Assert.AreEqual("🚀", BridgeValue.Parse("\"\\uD83D\\uDE80\"").As<string>());
+        }
+        [Test] public void FieldDiagnosticsIncludeKnownContext()
+        {
+            var doc = BridgeDocument.Parse("{\"bridgeVersion\":1,\"documentId\":\"context\",\"blocks\":{\"a\":{\"type\":\"t\",\"schemaVersion\":1,\"data\":{}}}}", source: "context.bridge.json");
+            var error = Assert.Throws<BridgeException>(() => doc.GetBlock("a").Get<int>("missing"));
+            Assert.AreEqual("context", error.Diagnostics[0].DocumentId);
+            Assert.AreEqual("context.bridge.json", error.Diagnostics[0].Source);
+        }
     }
 }

@@ -47,9 +47,19 @@ namespace Bridge.Core
                             c = json[i++];
                             if (c == 'u')
                             {
+                                int hexStart = i;
                                 for (int h = 0; h < 4; h++)
                                     if (i >= json.Length || !Uri.IsHexDigit(json[i++]))
                                         throw Lexical("Invalid Unicode escape.", i - 1);
+                                int unit = int.Parse(json.Substring(hexStart, 4), NumberStyles.HexNumber, CultureInfo.InvariantCulture);
+                                if (unit >= 0xDC00 && unit <= 0xDFFF) throw Lexical("Unpaired low Unicode surrogate.", hexStart);
+                                if (unit >= 0xD800 && unit <= 0xDBFF)
+                                {
+                                    if (i + 6 > json.Length || json[i] != '\\' || json[i + 1] != 'u'
+                                        || !int.TryParse(json.Substring(i + 2, 4), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out int low)
+                                        || low < 0xDC00 || low > 0xDFFF) throw Lexical("Unpaired high Unicode surrogate.", hexStart);
+                                    i += 6;
+                                }
                             }
                             else if ("\"\\/bfnrt".IndexOf(c) < 0) throw Lexical("Invalid string escape.", i - 1);
                         }
@@ -118,7 +128,11 @@ namespace Bridge.Core
             result = 0;
             return value is JRaw raw && int.TryParse((string?)raw.Value, NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out result);
         }
-        internal static string Write(JToken token) => token.ToString(Formatting.None);
+        internal static void EnsureUnicode(string text)
+        {
+            try { Utf8.GetByteCount(text); }
+            catch (EncoderFallbackException) { throw Error("VALUE_TYPE", "Strings must contain paired Unicode surrogates."); }
+        }
         private static JToken RestoreNumbers(JToken token, Queue<string> numbers)
         {
             if (token.Type == JTokenType.Integer || token.Type == JTokenType.Float) return new JRaw(numbers.Dequeue());

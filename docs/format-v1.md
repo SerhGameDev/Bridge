@@ -34,3 +34,5 @@ Parse/Save/Parse сохраняет семантику JSON. Пробелы не
 BridgeReadOptions defaults: 16 MiB MaxUtf8Bytes, MaxDepth 64 (включая служебные объекты), MaxBlocks 100000, MaxNumberCharacters 4096. Лимиты настраиваемые и не являются JSON полями; превышение даёт INPUT_LIMIT. Load читает не больше лимита плюс один байт.
 
 Полный sample: [minimal.bridge.json](../samples/contracts/minimal.bridge.json). Палитра для Console Sample лежит в samples/Bridge.Console.Sample/assets.
+
+Строки должны содержать корректные Unicode scalar values: непарные surrogate escapes отвергаются JSON_SYNTAX, чтобы Newtonsoft не заменял их символом U+FFFD. Корректные surrogate pairs поддержаны. Writer экранирует non-ASCII символы; семантика строк сохраняется.

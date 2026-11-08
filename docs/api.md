@@ -79,3 +79,5 @@ using var input = File.OpenRead("example.bridge.json");
 var loaded = BridgeDocument.Load(input, source: "example.bridge.json");
 if (loaded.GetBlock("message").Deserialize<string>() != "Привет") throw new System.Exception("Round-trip failed.");
 ```
+
+Ошибки Get/Set/Deserialize/SetBlockData включают известные DocumentId и Source; путь к данным блока записан как JSON Pointer. Parser diagnostics сохраняют собственный Newtonsoft path. Некорректный Unicode (непарные surrogates) отвергается, числовые typed read соблюдают точность целевого типа. Повторный Register<T> заменяет конвертер этого типа.

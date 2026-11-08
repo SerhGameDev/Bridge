@@ -56,6 +56,8 @@ namespace Bridge.Core
                 }
                 var block = new BridgeBlock(entry.Name, definition, schemaVersion);
                 block.Serializers = Serializers;
+                block.DocumentIdContext = DocumentId;
+                block.SourceContext = Source;
                 blocks.Add(entry.Name, block);
             }
         }

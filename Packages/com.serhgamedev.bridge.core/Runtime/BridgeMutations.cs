@@ -11,9 +11,23 @@ namespace Bridge.Core
     public sealed partial class BridgeBlock
     {
         internal BridgeSerializer Serializers { get; set; } = new BridgeSerializer();
-        public T Get<T>(string field) => Serializers.Deserialize<T>(Data.GetProperty(field));
-        public void Set<T>(string field, T value) => Definition["data"] = Data.WithField(field, Serializers.Serialize(value)).Token.DeepClone();
-        public T Deserialize<T>() => Serializers.Deserialize<T>(Data);
+        internal string? DocumentIdContext { get; set; }
+        internal string? SourceContext { get; set; }
+        private T WithContext<T>(Func<T> action, string? field = null)
+        {
+            try { return action(); }
+            catch (BridgeException ex)
+            {
+                string Escape(string name) => name.Replace("~", "~0").Replace("/", "~1");
+                string path = "/blocks/" + Escape(Id) + "/data" + (field == null ? "" : "/" + Escape(field));
+                throw new BridgeException(ex.Diagnostics.Select(d => new BridgeDiagnostic(d.Code, d.Message,
+                    d.DocumentId ?? DocumentIdContext, d.Source ?? SourceContext, path, d.Line, d.Column, d.Severity)));
+            }
+        }
+        public T Get<T>(string field) => WithContext(() => Serializers.Deserialize<T>(Data.GetProperty(field)), field);
+        public void Set<T>(string field, T value) => WithContext(() => Definition["data"] = Data.WithField(field, Serializers.Serialize(value)).Token.DeepClone(), field);
+        public T Deserialize<T>() => WithContext(() => Serializers.Deserialize<T>(Data));
+        internal void SetData<T>(T data) => WithContext(() => Definition["data"] = Serializers.Serialize(data).Token.DeepClone());
     }
     public sealed partial class BridgeDocument
     {
@@ -38,7 +52,7 @@ namespace Bridge.Core
             if (blocks.ContainsKey(id)) throw InternalJson.Error("BLOCK_DUPLICATE", $"Block '{id}' already exists.", Source, "blocks", DocumentId);
             var definition = new JObject { ["type"] = type, ["schemaVersion"] = new JRaw(schemaVersion.ToString(CultureInfo.InvariantCulture)), ["data"] = data.Token.DeepClone() };
             ((JObject)Root["blocks"]!).Add(id, definition);
-            var block = new BridgeBlock(id, definition, schemaVersion) { Serializers = Serializers };
+            var block = new BridgeBlock(id, definition, schemaVersion) { Serializers = Serializers, DocumentIdContext = DocumentId, SourceContext = Source };
             blocks.Add(id, block); return block;
         }
         public bool RemoveBlock(string id)
@@ -47,18 +61,20 @@ namespace Bridge.Core
             if (!blocks.Remove(id)) return false;
             ((JObject)Root["blocks"]!).Remove(id); return true;
         }
-        public void SetBlockData<T>(string id, T data) => GetBlock(id).Definition["data"] = Serializers.Serialize(data).Token.DeepClone();
+        public void SetBlockData<T>(string id, T data) => GetBlock(id).SetData(data);
         public string ToJson(bool indented = false) => WriteJson(Root, indented);
         internal static string WriteJson(JToken value, bool indented = false)
         {
             using var text = new StringWriter(CultureInfo.InvariantCulture);
-            using var writer = new JsonTextWriter(text) { Formatting = indented ? Formatting.Indented : Formatting.None, Culture = CultureInfo.InvariantCulture };
+            using var writer = new JsonTextWriter(text) { Formatting = indented ? Formatting.Indented : Formatting.None, Culture = CultureInfo.InvariantCulture, StringEscapeHandling = StringEscapeHandling.EscapeNonAscii };
             Sort(value).WriteTo(writer); writer.Flush(); return text.ToString();
         }
         private static JToken Sort(JToken token)
         {
-            if (token is JObject obj) return new JObject(obj.Properties().OrderBy(p => p.Name, StringComparer.Ordinal).Select(p => new JProperty(p.Name, Sort(p.Value))));
+            if (token is JObject obj) return new JObject(obj.Properties().OrderBy(p => p.Name, StringComparer.Ordinal).Select(p =>
+            { InternalJson.EnsureUnicode(p.Name); return new JProperty(p.Name, Sort(p.Value)); }));
             if (token is JArray array) return new JArray(array.Select(Sort));
+            if (token.Type == JTokenType.String) InternalJson.EnsureUnicode(((string)token)!);
             return token.DeepClone();
         }
         public void Save(Stream destination, bool indented = false)

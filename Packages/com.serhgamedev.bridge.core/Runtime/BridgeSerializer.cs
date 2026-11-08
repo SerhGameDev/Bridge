@@ -41,7 +41,7 @@ namespace Bridge.Core
         {
             if (value == null) return BridgeValue.Null;
             if (value is BridgeValue json) return new BridgeValue(json.Token);
-            if (value is string text) return new BridgeValue(new JValue(text));
+            if (value is string text) { InternalJson.EnsureUnicode(text); return new BridgeValue(new JValue(text)); }
             if (value is bool boolean) return new BridgeValue(new JValue(boolean));
             if (value is double d && (double.IsNaN(d) || double.IsInfinity(d)) || value is float f && (float.IsNaN(f) || float.IsInfinity(f)))
                 throw InternalJson.Error("VALUE_TYPE", "NaN and Infinity are not JSON numbers.");
@@ -65,6 +65,10 @@ namespace Bridge.Core
             if (type == typeof(string) && value.Kind == BridgeValueKind.String) return (T)(object)(string)value.Token!;
             if (type == typeof(bool) && value.Kind == BridgeValueKind.Boolean) return (T)(object)(bool)value.Token;
             if (type == typeof(string) || type == typeof(bool)) throw InternalJson.Error("VALUE_TYPE", $"JSON value cannot be read as {type.Name}.");
+            if (!(type == typeof(BigInteger) || type == typeof(double) || type == typeof(float) || type == typeof(decimal)
+                || type == typeof(int) || type == typeof(long) || type == typeof(uint) || type == typeof(ulong)
+                || type == typeof(short) || type == typeof(ushort) || type == typeof(byte) || type == typeof(sbyte)))
+                throw InternalJson.Error("DTO_CONVERTER_MISSING", $"Register an explicit converter for {typeof(T).FullName}.");
             try
             {
                 if (value.Kind != BridgeValueKind.Number) throw new FormatException("JSON value has incompatible kind.");

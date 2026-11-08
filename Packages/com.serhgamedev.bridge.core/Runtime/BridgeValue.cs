@@ -18,6 +18,6 @@ namespace Bridge.Core
         };
         public static BridgeValue Parse(string json, BridgeReadOptions? options = null)
             => new BridgeValue(InternalJson.Parse(json, options ?? new BridgeReadOptions(), null));
-        public string ToJson() => InternalJson.Write(Token);
+        public string ToJson() => BridgeDocument.WriteJson(Token);
     }
 }
