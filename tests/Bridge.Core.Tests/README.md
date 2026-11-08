@@ -1,1 +1,1 @@
-Placeholder directory for future automated tests. Tests are introduced with the first implementation stage.
+dotnet test Bridge.sln -c Release запускает xUnit проверки JSON/schema/limits, CRUD/DTO, queries и resolvers. Файловые тесты создают данные и реальный junction/symlink только под ignored build output. Unity NUnit suite находится отдельно в UPM и не считается dotnet тестами.

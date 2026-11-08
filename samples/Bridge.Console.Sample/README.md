@@ -1,1 +1,1 @@
-Placeholder directory for future console sample. API examples in Stage 0 are non-executable contracts.
+Console Sample: dotnet run --project samples/Bridge.Console.Sample -c Release. Проверяет DTO, CRUD, UTF-8 round-trip, LINQ/fluent, внешнюю палитру и запрет обхода корня. --performance добавляет observational query smoke 1000/10000 блоков без аппаратного SLA.
