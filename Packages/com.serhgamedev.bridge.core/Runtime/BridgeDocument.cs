@@ -26,6 +26,7 @@ namespace Bridge.Core
         public int BridgeVersion => 1;
         public string DocumentId { get; }
         public string? Source { get; }
+        public BridgeSerializer Serializers { get; } = new BridgeSerializer();
         public IReadOnlyList<BridgeBlock> Blocks => Array.AsReadOnly(blocks.Values.OrderBy(b => b.Id, StringComparer.Ordinal).ToArray());
         private BridgeDocument(JObject root, string? source, BridgeReadOptions options)
         {
@@ -53,7 +54,9 @@ namespace Bridge.Core
                         RequiredString(target["block"], reference.Path + ".block");
                     }
                 }
-                blocks.Add(entry.Name, new BridgeBlock(entry.Name, definition, schemaVersion));
+                var block = new BridgeBlock(entry.Name, definition, schemaVersion);
+                block.Serializers = Serializers;
+                blocks.Add(entry.Name, block);
             }
         }
         private string RequiredString(JToken? value, string path)
