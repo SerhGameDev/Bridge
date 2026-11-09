@@ -22,8 +22,8 @@ namespace Bridge.Runtime
             try
             {
                 using var linked = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, stop.Token);
-                await gate.WaitAsync(linked.Token).ConfigureAwait(false);
-                try { linked.Token.ThrowIfCancellationRequested(); return await action(linked.Token).ConfigureAwait(false); }
+                await gate.WaitAsync(linked.Token);
+                try { linked.Token.ThrowIfCancellationRequested(); return await action(linked.Token); }
                 finally { gate.Release(); }
             }
             finally { Interlocked.Decrement(ref pending); }

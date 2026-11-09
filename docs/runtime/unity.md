@@ -41,3 +41,5 @@ Listener привязан только к literal `127.0.0.1:19731`, без host
 ## AOT
 
 Windows toolchain в этом окружении — Mono. Для отдельного AOT smoke используется WebGL IL2CPP High stripping. WebGL не имеет demo IPC listener/managed worker threads: встроенный smoke отправляет запросы через Update и выводит DOM marker. `[Preserve]` на reflected sample methods и explicit generic codecs/typed registrar нужны независимо от наличия атрибутов Runtime. Установленный6000.7.0a2 — alpha Unity6, не Unity7.
+
+Runtime сохраняет SynchronizationContext через await; Unity dispatcher в WebGL завершает Task inline на Update, поскольку managed ThreadPool отсутствует. На desktop completion использует RunContinuationsAsynchronously. Не добавляйте тяжёлую синхронную continuation к WebGL Task. Demo явно включает runInBackground, чтобы внешний клиент/фоновая вкладка не останавливал Update. Проверка cancellation в WebGL охватывает явную отмену токена; timer-based deadline отдельно не квалифицируется этим smoke.

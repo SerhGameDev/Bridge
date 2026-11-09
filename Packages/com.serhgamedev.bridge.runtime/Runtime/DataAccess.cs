@@ -42,7 +42,7 @@ namespace Bridge.Runtime
                     dispatchDepth.Value++;
                     try { return await action(token); }
                     finally { dispatchDepth.Value--; }
-                }, linked.Token).ConfigureAwait(false);
+                }, linked.Token);
                 linked.Token.ThrowIfCancellationRequested();
                 var result = new BridgeCommandResult(BridgeCommandStatus.Completed, context.RequestId, operationId, data);
                 return Bytes(result.ToValue()) > Options.MaxResponseBytes ? Error(BridgeCommandStatus.Failed, "RESPONSE_LIMIT") : Finish(result);
