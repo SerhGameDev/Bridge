@@ -1,14 +1,20 @@
 param(
  [string]$UnityEditor='C:/Program Files/Unity/Hub/Editor/6000.6.7f1/Editor/Unity.exe',
- [ValidateSet('EditMode','PlayMode','WindowsBuild','WebGLBuild')][string]$Mode='EditMode'
+ [ValidateSet('EditMode','PlayMode','WindowsBuild','WebGLBuild')][string]$Mode='EditMode',
+ [ValidatePattern('^[A-Za-z0-9._/-]+$')][string]$GitRevision,
+ [ValidatePattern('^[A-Za-z0-9-]*$')][string]$ProjectSuffix=''
 )
 $ErrorActionPreference='Stop'
 $repo=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $version=(Get-Item -LiteralPath $UnityEditor).VersionInfo.ProductVersion.Split('_')[0]
-$project=Join-Path $repo "work/runtime-unity/$version"
+$hostName=$version
+if($ProjectSuffix){$hostName+='-'+$ProjectSuffix}elseif($GitRevision){$hostName+='-git'}
+$project=Join-Path $repo "work/runtime-unity/$hostName"
 New-Item -ItemType Directory -Path "$project/Assets","$project/Packages","$project/ProjectSettings" -Force | Out-Null
 $deps=@{'com.unity.test-framework'='1.8.0';'com.unity.modules.jsonserialize'='1.0.0';'com.unity.modules.physics'='1.0.0'}
-foreach($name in @('core','runtime','unity')) { $deps["com.serhgamedev.bridge.$name"]='file:'+((Join-Path $repo "Packages/com.serhgamedev.bridge.$name").Replace('\','/')) }
+foreach($name in @('core','runtime','unity')) {
+ $deps["com.serhgamedev.bridge.$name"]=if($GitRevision){"https://github.com/SerhGameDev/Bridge.git?path=/Packages/com.serhgamedev.bridge.$name#$GitRevision"}else{'file:'+((Join-Path $repo "Packages/com.serhgamedev.bridge.$name").Replace('\','/'))}
+}
 @{dependencies=$deps;testables=@('com.serhgamedev.bridge.unity')} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath "$project/Packages/manifest.json" -Encoding utf8
 "m_EditorVersion: $version" | Set-Content -LiteralPath "$project/ProjectSettings/ProjectVersion.txt" -Encoding utf8
 New-Item -ItemType Directory -Path "$project/Assets/BridgeRuntimeDemo" -Force | Out-Null

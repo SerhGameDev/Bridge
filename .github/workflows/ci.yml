@@ -17,6 +17,8 @@ jobs:
       - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: '8.0.x'
+      - run: ./tools/Verify-RuntimeDelivery.ps1
+        shell: pwsh
       - run: dotnet restore Bridge.sln
       - run: dotnet build Bridge.sln -c Debug --no-restore
       - run: dotnet test Bridge.sln -c Debug --no-build --logger trx --results-directory work/test-results/ci-debug

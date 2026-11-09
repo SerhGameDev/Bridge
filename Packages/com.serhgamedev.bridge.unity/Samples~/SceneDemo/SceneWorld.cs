@@ -28,13 +28,16 @@ namespace Bridge.Unity.Demo
         public bool Delete(string id) { AssertOwner(); if (!cubes.TryGetValue(id,out var cube)) return false; cubes.Remove(id); UnityEngine.Object.Destroy(cube); return true; }
         public Task<BridgeDataSnapshot> ReadAsync(CancellationToken token)
         {
-            AssertOwner(); token.ThrowIfCancellationRequested(); var doc = BridgeDocument.Create("private.scene");
+            AssertOwner(); token.ThrowIfCancellationRequested(); var blocks = new Dictionary<string,BridgeValue>();
             foreach (var pair in cubes)
             {
                 var p = pair.Value.transform.position;
-                doc.AddBlock(pair.Key,"scene.cube",DemoJson.Object(new Dictionary<string,object> { ["x"]=p.x,["y"]=p.y,["z"]=p.z,["privateNote"]="not published" }));
+                var data=DemoJson.Object(new Dictionary<string,object> { ["x"]=p.x,["y"]=p.y,["z"]=p.z,["privateNote"]="not published" });
+                blocks.Add(pair.Key,DemoJson.Object(new Dictionary<string,object> { ["type"]="scene.cube",["schemaVersion"]=1,["data"]=data }));
             }
-            return Task.FromResult(new BridgeDataSnapshot(doc));
+            // Bulk snapshot: one Core parse, avoiding a transactional document clone for every cube.
+            var json=DemoJson.Object(new Dictionary<string,object> { ["bridgeVersion"]=1,["documentId"]="private.scene",["blocks"]=BridgeValue.Object(blocks) });
+            return Task.FromResult(new BridgeDataSnapshot(BridgeDocument.Parse(json.ToJson())));
         }
     }
     [Preserve] public enum DemoMode { Ready, Running }
