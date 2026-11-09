@@ -1,0 +1,1 @@
+{"name":"Bridge.Unity.EditorTests","references":["Bridge.Core","Bridge.Runtime","Bridge.Unity"],"includePlatforms":["Editor"],"optionalUnityReferences":["TestAssemblies"]}
