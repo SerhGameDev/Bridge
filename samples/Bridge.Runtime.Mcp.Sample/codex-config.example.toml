@@ -1,0 +1,10 @@
+# Add this section to your trusted project's .codex/config.toml or ~/.codex/config.toml.
+# Publish the sample first. Change only the absolute path if your checkout differs.
+# No credential values are stored here. Launch Codex with BRIDGE_PLAYER_TOKEN in its environment.
+[mcp_servers.bridge_runtime]
+command = "dotnet"
+args = ["C:/GitHub/Bridge/work/mcp-gateway/Bridge.Runtime.Mcp.Sample.dll", "--enable-stdio", "--player"]
+env_vars = ["BRIDGE_PLAYER_TOKEN"]
+startup_timeout_sec = 20
+tool_timeout_sec = 30
+default_tools_approval_mode = "prompt"
