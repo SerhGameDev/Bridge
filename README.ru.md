@@ -43,6 +43,6 @@ NuGet/UPM registry, tags и Release **не публиковались**. Исп�
 
 ## Проверки и Wiki
 
-`dotnet test Bridge.sln -c Release`, `tools/Verify-Snippets.ps1`, `tools/Verify-RuntimePackages.ps1`, `tools/Verify-RuntimeUnity.ps1`, `tools/Verify-RuntimeMcp.ps1`. CI Windows/Ubuntu, .NET Debug/Release и local package consumers. Фактические платформы/ограничения — [R5](docs/stages/runtime-R5.md), [R6](docs/stages/runtime-R6.md), последующая R8 приёмка; успешная сборка не заменяет Player runtime test.
+`dotnet test Bridge.sln -c Release`, `tools/Verify-Snippets.ps1`, `tools/Verify-RuntimePackages.ps1`, `tools/Verify-RuntimeUnity.ps1`, `tools/Verify-RuntimeMcp.ps1`. CI Windows/Ubuntu, .NET Debug/Release и local package consumers. Фактические платформы/ограничения — [R5](docs/stages/runtime-R5.md), [R6](docs/stages/runtime-R6.md), [итоговая R8 приёмка](docs/verification-report-runtime.md); успешная сборка не заменяет Player runtime test.
 
 Отдельная GitHub Wiki пока не инициализирована: полный [docs/wiki fallback](docs/wiki/runtime/Home.md) доступен в репозитории. [Безопасная dry-run синхронизация](docs/wiki-sync.md). [Changelog](CHANGELOG.md) · [roadmap](docs/runtime/roadmap.md) · [MIT/dependency notices](THIRD-PARTY-NOTICES.md).

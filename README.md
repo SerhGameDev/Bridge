@@ -36,6 +36,6 @@ Packages, tags and GitHub Releases have **not** been published. Use checkout Pro
 
 Run `dotnet run --project samples/Bridge.Runtime.Console.Sample -c Release`. [Unity guide](docs/runtime/unity.md) covers actual prefab/scene creation, Windows Mono and WebGL IL2CPP High. [Built Player → MCP → Codex](docs/runtime/mcp.md) includes publish/start/environment/TOML instructions and a real official-SDK compatible-client E2E. A personal Codex connected session is not claimed. [Recipes](docs/wiki/runtime/Cookbook.md) · [Troubleshooting](docs/wiki/runtime/Troubleshooting.md).
 
-CI runs Windows/Ubuntu, .NET Debug/Release and local package consumers. [R5 evidence](docs/stages/runtime-R5.md), [R6 evidence](docs/stages/runtime-R6.md), final R8 acceptance record distinguish build, Editor and real Player execution. Core0.2 was accepted into main through PR1.
+CI runs Windows/Ubuntu, .NET Debug/Release and local package consumers. [R5 evidence](docs/stages/runtime-R5.md), [R6 evidence](docs/stages/runtime-R6.md), [final R8 acceptance record](docs/verification-report-runtime.md) distinguish build, Editor and real Player execution. Core0.2 was accepted into main through PR1.
 
 The separate GitHub Wiki storage is not initialized; the complete [docs/wiki fallback](docs/wiki/runtime/Home.md) is the source of truth. [Safe Wiki synchronization](docs/wiki-sync.md) · [Changelog](CHANGELOG.md) · [Roadmap](docs/runtime/roadmap.md) · [Dependency notices](THIRD-PARTY-NOTICES.md).
