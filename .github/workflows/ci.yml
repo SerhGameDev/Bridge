@@ -1,4 +1,4 @@
-name: Bridge.Core CI
+name: Bridge CI
 on:
   workflow_dispatch:
   push:
@@ -22,8 +22,10 @@ jobs:
       - run: dotnet test Bridge.sln -c Release --no-build --logger trx --results-directory work/test-results/ci
       - run: dotnet run --project samples/Bridge.Console.Sample -c Release --no-build
       - run: dotnet run --project samples/Bridge.Console.Beginner -c Release --no-build
+      - run: dotnet run --project samples/Bridge.Runtime.Console.Sample -c Release --no-build
       - run: ./tools/Verify-Snippets.ps1
         shell: pwsh
       - run: dotnet pack src/Bridge.Core/Bridge.Core.csproj -c Release --no-build -o work/packages
       - run: ./tools/Verify-Package.ps1
         shell: pwsh
+      - run: dotnet pack src/Bridge.Runtime/Bridge.Runtime.csproj -c Release --no-build -o work/packages
