@@ -1,24 +1,41 @@
-# Bridge.Core
+# Bridge: Core and Runtime
 
-Bridge.Core is a netstandard2.1 library for versioned JSON block documents, explicit references, LINQ and bounded serializable queries. MIT. The core has no UnityEngine dependency.
+Core0.2 provides versioned JSON block documents, references and bounded queries. Runtime0.1 adds explicitly registered C# commands, discovery and policy-bound data access. Both target netstandard2.1 with no UnityEngine/MCP dependency. MIT. Unity adapter and the .NET MCP gateway are separate packages.
 
-**[Start here](docs/wiki/Getting-Started-English.md)** · [Русский](README.ru.md) · [API](docs/api.md) · [Format](docs/format-v1.md)
+**[Runtime guide](docs/wiki/runtime/Home.md)** · [Core English tutorial](docs/wiki/Getting-Started-English.md) · [Русский](README.ru.md) · [Runtime API](docs/wiki/runtime/API-Reference.md)
 
-v0.2 is developed on feature/core-v0.2-developer-experience. Reference src/Bridge.Core/Bridge.Core.csproj from that checkout, or run `dotnet run --project samples/Bridge.Console.Beginner -c Release` for the complete file round-trip. Expected: BEGINNER_PASS: speed=2; projected=1.
+## First command: no Unity, MCP or file
+
+Create a .NET8 console project and reference `src/Bridge.Runtime/Bridge.Runtime.csproj` ([steps](docs/wiki/runtime/Installation-NET.md)). Complete Program.cs:
 
 ```csharp
 using System;
 using Bridge.Core;
-var d = BridgeDocument.Create("factory");
-d.AddBlock("settings", "simulation.settings", BridgeValue.Parse("{\"speed\":1}"));
-if (d.ContainsBlock("settings") && d.HasField("settings", "speed"))
-    d.Set("settings", "speed", d.Get<double>("settings", "speed") * 2);
-if (d.Get<double>("settings", "speed") != 2) throw new Exception("Example failed");
-Console.WriteLine("speed=2");
+using Bridge.Runtime;
+using var host = BridgeHostBuilder.Create("demo").AddCommands(new MathCommands()).Build();
+var result = await host.ExecuteLocalAsync("math.add", BridgeValue.Parse("{\"a\":2,\"b\":3}"));
+if (!result.Success) throw new Exception(result.Error!.Code);
+Console.WriteLine("sum=" + result.Data.As<int>());
+public sealed class MathCommands
+{
+    [BridgeCommand("math.add", Permission=BridgePermission.Read)]
+    public int Add(int a, int b) => a + b;
+}
 ```
 
-IDs and direct field names are ordinal and case sensitive. HasField treats null as present. TryGet returns false for missing only; type failures throw BridgeException. Use TryRead for diagnostic results. BridgeFile provides Exists/Load/TryLoad/Save/SaveAtomic; Exists does not validate JSON or guarantee a later read. DTO converters are explicit and reusable with isolated document registration tables. WhereTypes supports OR filters and keeps QuerySpec v1 compatible; multi-type specs use v2.
+Expected sum=5. ExecuteLocalAsync is an explicitly trusted Admin path. External clients require a trusted authenticated context and explicit data policies. Build opens no listener. [Security/default deny](docs/wiki/runtime/Security.md).
 
-For Unity Git UPM installation and a runnable TextAsset MonoBehaviour see [Unity](docs/wiki/Getting-Started-Unity.md). [Cookbook](docs/wiki/Cookbook.md) and [FAQ](docs/wiki/FAQ.md) give practical examples. No NuGet package, GitHub Release or version tag has been published. The repository is public. Wiki is enabled but its separate Git storage is not initialized; docs/wiki is the complete documentation source until publication. [Wiki sync](docs/wiki-sync.md).
+## Packages and examples
 
-Build: dotnet restore, dotnet build -c Release, dotnet test -c Release. Validate documentation with tools/Verify-Snippets.ps1; pack locally with dotnet pack -c Release -o work/packages. See the [v0.2 verification report](docs/verification-report-v0.2.md) for actual CI/Unity results and limitations.
+- Bridge.Core0.2: JSON document/block/field, serializers, references and QuerySpec. Public Core API and bridgeVersion=1 remain compatible.
+- Bridge.Runtime0.1: host, command attributes/schemas, policy-filtered discovery/query and async executor.
+- com.serhgamedev.bridge.unity0.1: owner-thread dispatcher and importable Cube Scene Demo.
+- Bridge.Transport.Mcp0.1: separate .NET8 stdio gateway using official SDK2.4.0.
+
+Packages, tags and GitHub Releases have **not** been published. Use checkout ProjectReference, [verified local NuGet packages](docs/wiki/runtime/Installation-NET.md), or [Git UPM installation](docs/wiki/runtime/Installation-Unity.md).
+
+Run `dotnet run --project samples/Bridge.Runtime.Console.Sample -c Release`. [Unity guide](docs/runtime/unity.md) covers actual prefab/scene creation, Windows Mono and WebGL IL2CPP High. [Built Player → MCP → Codex](docs/runtime/mcp.md) includes publish/start/environment/TOML instructions and a real official-SDK compatible-client E2E. A personal Codex connected session is not claimed. [Recipes](docs/wiki/runtime/Cookbook.md) · [Troubleshooting](docs/wiki/runtime/Troubleshooting.md).
+
+CI runs Windows/Ubuntu, .NET Debug/Release and local package consumers. [R5 evidence](docs/stages/runtime-R5.md), [R6 evidence](docs/stages/runtime-R6.md), final R8 acceptance record distinguish build, Editor and real Player execution. Core0.2 was accepted into main through PR1.
+
+The separate GitHub Wiki storage is not initialized; the complete [docs/wiki fallback](docs/wiki/runtime/Home.md) is the source of truth. [Safe Wiki synchronization](docs/wiki-sync.md) · [Changelog](CHANGELOG.md) · [Roadmap](docs/runtime/roadmap.md) · [Dependency notices](THIRD-PARTY-NOTICES.md).

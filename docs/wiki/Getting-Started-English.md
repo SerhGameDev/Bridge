@@ -1,7 +1,7 @@
 <!-- Bridge.Core managed wiki source -->
 # English quickstart
 
-Bridge.Core is a netstandard2.1 data library for versioned JSON block documents. v0.2 adds file helpers, exact presence checks, typed document access, reusable explicit converters and multi-type queries. No NuGet package or GitHub Release has been published. Use a project reference to src/Bridge.Core/Bridge.Core.csproj from the v0.2 feature checkout.
+Bridge.Core is a netstandard2.1 data library for versioned JSON block documents. v0.2 adds file helpers, exact presence checks, typed document access, reusable explicit converters and multi-type queries. No NuGet package or GitHub Release has been published. Use a project reference to src/Bridge.Core/Bridge.Core.csproj from this checkout (Core0.2 was accepted into main through PR1).
 
 Run `dotnet run --project samples/Bridge.Console.Beginner -c Release` for the complete create/save/exists/load/read/update/query/save/reload scenario. Expected: BEGINNER_PASS: speed=2; projected=1. For your own console app, use this complete Program.cs:
 
@@ -19,4 +19,4 @@ Expected output: 2. Block IDs and field names are exact, ordinal and case sensit
 
 Use .UseSerializers(registry) after Create/Parse/Load(Stream), or BridgeFile.Load(path, serializers: registry). Each document copies registrations; delegate closure state remains the caller's responsibility. Documents and mutable registries are not thread safe. WhereTypes is OR across types, AND with ID; repeated type filters replace prior filters. Multi-type specs use queryVersion2; v1 stays supported. Removed handles throw BLOCK_REMOVED, while prior BridgeValue snapshots remain valid.
 
-Unity: install Git UPM from the v0.2 feature branch as documented in [Unity](Getting-Started-Unity.md), import Beginner TextAsset, attach BridgeBeginner to a GameObject, assign its TextAsset and run. [API](API-Reference.md), [examples](Cookbook.md), [Home](Home.md).
+Unity: install Git UPM from the repository as documented in [Unity](Getting-Started-Unity.md), import Beginner TextAsset, attach BridgeBeginner to a GameObject, assign its TextAsset and run. [API](API-Reference.md), [examples](Cookbook.md), [Home](Home.md).

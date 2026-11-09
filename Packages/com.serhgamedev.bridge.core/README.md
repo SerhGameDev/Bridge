@@ -1,15 +1,19 @@
 # Bridge.Core for Unity
 
-Use Package Manager **Add package from disk** and choose this directory's `package.json`, or add a local dependency in the host project's manifest:
+Core0.2 is accepted into main. Package Manager → Add package from git URL:
 
-```json
-"com.serhgamedev.bridge.core": "file:C:/GitHub/Bridge/Packages/com.serhgamedev.bridge.core"
+```text
+https://github.com/SerhGameDev/Bridge.git?path=/Packages/com.serhgamedev.bridge.core
 ```
 
-This repository has no published Git URL yet. For another checkout, replace the local path. The dependency is Unity's official `com.unity.nuget.newtonsoft-json` 3.2.2; do not copy Newtonsoft DLLs into Assets.
+For reproducible installs, append a verified commit SHA. No NuGet/registry/tag release is claimed. Alternatively use Add package from disk and select package.json, or this complete local manifest:
 
-The same Runtime C# source is compiled by the .NET project. `Bridge.Core.asmdef` sets `noEngineReferences: true`; only samples/tests use Unity APIs. Load `TextAsset.text` through `BridgeDocument.Parse(asset.text)`.
+```json
+{"dependencies":{"com.serhgamedev.bridge.core":"file:C:/GitHub/Bridge/Packages/com.serhgamedev.bridge.core"}}
+```
 
-To run package tests, include `"testables": ["com.serhgamedev.bridge.core"]` in the host manifest and run `Bridge.Core.EditorTests` in Test Runner. The repository helper `tools/Verify-Unity.ps1` creates an isolated host under ignored `work/`.
+Unity restores official com.unity.nuget.newtonsoft-json3.2.2; do not copy vendor DLLs into Assets. The .NET project links the same Runtime C# source. Bridge.Core.asmdef has noEngineReferences=true; only samples/tests use Unity APIs.
 
-Import **Basic Usage and AOT Smoke** for a runnable explicitly registered DTO example. See the sample README for IL2CPP/code stripping and WebGL build instructions. Compatibility claims are documented in the repository's `docs/unity-compatibility.md`; Unity 7 and other unavailable versions are not assumed tested.
+Import Beginner TextAsset or Basic Usage and AOT Smoke from Package Manager samples. Load TextAsset.text with BridgeDocument.Parse. Add Core to manifest testables and run Bridge.Core.EditorTests; tools/Verify-Unity.ps1 provides a reproducible isolated host. Runtime/commands and its Unity adapter are separate packages.
+
+[Core guide](https://github.com/SerhGameDev/Bridge/blob/main/docs/wiki/Home.md) · [Runtime guide](https://github.com/SerhGameDev/Bridge/blob/main/docs/wiki/runtime/Home.md). Actual Unity/IL2CPP evidence is recorded in versioned verification reports; unavailable engines/targets are not assumed tested.

@@ -1,7 +1,7 @@
 <!-- Bridge.Core managed wiki source -->
 # Первое приложение .NET
 
-Используйте .NET 8 SDK и checkout feature-ветки v0.2. Из каталога репозитория можно сразу выполнить `dotnet run --project samples/Bridge.Console.Beginner -c Release`: ожидается `BEGINNER_PASS: speed=2; projected=1`.
+Используйте .NET 8 SDK и checkout с принятым Core v0.2 (main после PR1). Из каталога репозитория можно сразу выполнить `dotnet run --project samples/Bridge.Console.Beginner -c Release`: ожидается `BEGINNER_PASS: speed=2; projected=1`.
 
 Для своего приложения создайте `dotnet new console -n FirstBridge` рядом с checkout, затем `dotnet add FirstBridge reference Bridge/src/Bridge.Core/Bridge.Core.csproj`. Путь исправьте под свой каталог. Не устанавливайте одноимённый публичный NuGet-пакет: этот проект его не публиковал. Замените Program.cs полным примером:
 

@@ -6,7 +6,8 @@ using Bridge.Core;
 
 string root = Path.GetFullPath(args[0]);
 var files = Directory.GetFiles(Path.Combine(root, "docs"), "*.md", SearchOption.AllDirectories)
-    .Concat(new[] { Path.Combine(root, "README.md"), Path.Combine(root, "README.ru.md") });
+    .Concat(new[] { Path.Combine(root, "README.md"), Path.Combine(root, "README.ru.md"),Path.Combine(root,"THIRD-PARTY-NOTICES.md"),Path.Combine(root,"src","Bridge.Transport.Mcp","README.md") })
+    .Concat(Directory.GetFiles(Path.Combine(root,"Packages"),"README.md",SearchOption.AllDirectories));
 int jsonCount = 0, links = 0, pages = 0;
 foreach (var file in files)
 {
