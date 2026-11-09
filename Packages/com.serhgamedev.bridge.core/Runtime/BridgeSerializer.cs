@@ -11,6 +11,23 @@ namespace Bridge.Core
     public sealed class BridgeSerializer
     {
         private readonly Dictionary<Type, object> converters = new Dictionary<Type, object>();
+        /// <summary>Independent registration table; delegate targets must be stateless or caller-synchronized.</summary>
+        public BridgeSerializer Clone()
+        {
+            var copy = new BridgeSerializer(); copy.CopyFrom(this); return copy;
+        }
+        internal void CopyFrom(BridgeSerializer source)
+        {
+            if (source == null) throw new ArgumentNullException(nameof(source));
+            var snapshot = new Dictionary<Type, object>(source.converters);
+            converters.Clear(); foreach (var pair in snapshot) converters.Add(pair.Key, pair.Value);
+        }
+        private static TResult Convert<TResult>(Func<TResult> action)
+        {
+            try { return action(); }
+            catch (Exception ex) when (ex is FormatException || ex is OverflowException || ex is InvalidCastException)
+            { throw InternalJson.Error("DTO_CONVERSION", ex.Message); }
+        }
         private sealed class Converter<T>
         {
             internal readonly Func<BridgeValue, T> Read;
@@ -25,14 +42,14 @@ namespace Bridge.Core
         public T Deserialize<T>(BridgeValue value)
         {
             if (value == null) throw new ArgumentNullException(nameof(value));
-            return converters.TryGetValue(typeof(T), out var item) ? ((Converter<T>)item).Read(value) : PrimitiveRead<T>(value);
+            return converters.TryGetValue(typeof(T), out var item) ? Convert(() => ((Converter<T>)item).Read(value)) : PrimitiveRead<T>(value);
         }
         public BridgeValue Serialize<T>(T value)
         {
             if (converters.TryGetValue(typeof(T), out var item))
             {
-                var result = ((Converter<T>)item).Write(value);
-                if (result == null) throw new InvalidOperationException("Converter must return BridgeValue.Null instead of a null BridgeValue.");
+                var result = Convert(() => ((Converter<T>)item).Write(value));
+                if (result == null) throw InternalJson.Error("DTO_CONVERSION", "Converter must return BridgeValue.Null instead of a null BridgeValue.");
                 return new BridgeValue(result.Token);
             }
             return PrimitiveWrite(value);

@@ -25,6 +25,11 @@ namespace Bridge.Core
 
     public sealed partial class BridgeDocument
     {
+        /// <summary>Copies registrations. Later registration changes are local to each document.</summary>
+        public BridgeDocument UseSerializers(BridgeSerializer serializers)
+        {
+            Serializers.CopyFrom(serializers); return this;
+        }
         public bool ContainsBlock(string id)
         {
             BridgeArguments.Name(id, nameof(id));

@@ -33,13 +33,16 @@ namespace Bridge.Samples
         {
             var document = BridgeDocument.Create("aot");
             document.AddBlock("settings", "settings", BridgeValue.Parse("{\"speed\":1,\"large\":1.234567890123456789e1000,\"unicode\":\"✓\"}"));
-            document.Serializers.Register<SmokeSettings>(v => new SmokeSettings { Speed = v.Get<double>("speed") },
+            var serializers = new BridgeSerializer();
+            serializers.Register<SmokeSettings>(v => new SmokeSettings { Speed = v.Get<double>("speed") },
                 dto => BridgeValue.Parse("{}").WithField("speed", BridgeValue.From(dto.Speed)));
+            document.UseSerializers(serializers);
             var dto = document.GetBlock("settings").Deserialize<SmokeSettings>(); dto.Speed = 7;
             if (document.GetBlock("settings").Get<double>("speed") != 1) throw new Exception("Implicit mutation.");
             document.SetBlockData("settings", dto);
             using var stream = new MemoryStream(); document.Save(stream); stream.Position = 0;
-            var restored = BridgeDocument.Load(stream);
+            var restored = BridgeDocument.Load(stream).UseSerializers(serializers);
+            if (restored.GetBlock("settings").Deserialize<SmokeSettings>().Speed != 7) throw new Exception("Shared registry.");
             if (restored.GetBlock("settings").Get<double>("speed") != 7) throw new Exception("DTO round-trip.");
             if (document.Blocks.Where(b => b.Type == "settings").Count() != 1) throw new Exception("LINQ.");
             var selection = document.Query().SelectFields("speed").Execute();

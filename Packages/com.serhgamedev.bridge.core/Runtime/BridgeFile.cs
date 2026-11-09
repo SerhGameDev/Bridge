@@ -14,19 +14,20 @@ namespace Bridge.Core
             return Path.GetFullPath(path);
         }
         public static bool Exists(string path) => File.Exists(PathArgument(path));
-        public static BridgeDocument Load(string path, BridgeReadOptions? options = null)
+        public static BridgeDocument Load(string path, BridgeReadOptions? options = null, BridgeSerializer? serializers = null)
         {
             string fullPath = PathArgument(path);
             try
             {
                 using var stream = new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read);
-                return BridgeDocument.Load(stream, options, fullPath);
+                var document = BridgeDocument.Load(stream, options, fullPath);
+                return serializers == null ? document : document.UseSerializers(serializers);
             }
             catch (Exception ex) when (IsFileError(ex)) { throw Failure(ex, fullPath); }
         }
-        public static BridgeResult<BridgeDocument> TryLoad(string path, BridgeReadOptions? options = null)
+        public static BridgeResult<BridgeDocument> TryLoad(string path, BridgeReadOptions? options = null, BridgeSerializer? serializers = null)
         {
-            try { return BridgeResult<BridgeDocument>.Ok(Load(path, options)); }
+            try { return BridgeResult<BridgeDocument>.Ok(Load(path, options, serializers)); }
             catch (BridgeException ex) { return BridgeResult<BridgeDocument>.Fail(ex); }
         }
         /// <summary>Uses the same replacement strategy as SaveAtomic.</summary>
