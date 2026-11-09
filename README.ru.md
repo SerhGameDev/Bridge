@@ -1,49 +1,36 @@
 # Bridge.Core
 
-Bridge.Core хранит блоки и именованные ссылки в стандартном JSON, предоставляет LINQ и ограниченные сериализуемые запросы. Ядро рассчитано на **netstandard2.1**, не зависит от UnityEngine и не исполняет данные документов. MIT, 2026 SershDev.
+Bridge.Core хранит версионированные блоки данных и ссылки в стандартном JSON. Ядро netstandard2.1 подходит для .NET и Unity, использует MIT и не зависит от UnityEngine.
 
-[Формат](docs/format-v1.md) · [API](docs/api.md) · [Запросы](docs/queries.md) · [Ссылки](docs/references.md) · [Unity/AOT](docs/unity-compatibility.md) · [English](README.md)
+**[Начать с руководства](docs/wiki/Home.md)** · [English](README.md) · [Технический API](docs/api.md) · [Формат](docs/format-v1.md)
 
-## Локальная установка
+## Первый пример
 
-0.1.0 — локальный кандидат. GitHub-репозиторий, NuGet-пакет и релиз не опубликованы. Добавьте project reference на `src/Bridge.Core/Bridge.Core.csproj` из этого checkout. Для локального NuGet source соберите пакет через `dotnet pack -c Release -o work/packages`. Одноимённый публичный пакет нельзя считать пакетом этого проекта.
-
-Для Unity выберите Package Manager → Add package from disk → `Packages/com.serhgamedev.bridge.core/package.json`. .NET/Unity используют одни исходники, Newtonsoft подключается официальным Unity-пакетом. Точные результаты Editor/IL2CPP — в [отчёте совместимости](docs/unity-compatibility.md).
-
-## Быстрый старт
-
-Полный консольный пример: чтение, изменение, LINQ, выборка полей, сохранение и повторная загрузка.
+v0.2 разрабатывается в feature/core-v0.2-developer-experience. Добавьте ProjectReference на src/Bridge.Core/Bridge.Core.csproj из checkout этой ветки либо запустите готовое приложение: `dotnet run --project samples/Bridge.Console.Beginner -c Release`.
 
 ```csharp
 using System;
-using System.IO;
-using System.Linq;
 using Bridge.Core;
-
-var document = BridgeDocument.Parse("{\"bridgeVersion\":1,\"documentId\":\"demo\",\"blocks\":{\"settings\":{\"type\":\"settings\",\"schemaVersion\":1,\"data\":{\"speed\":1,\"note\":\"private\"}}}}");
-var block = document.GetBlock("settings");
-block.Set("speed", block.Get<double>("speed") + 1);
-var ids = document.Blocks.Where(b => b.Type == "settings").Select(b => b.Id).ToArray();
-var selection = document.Query().WhereType("settings").SelectFields("speed").Limit(10).Execute();
-Console.WriteLine(selection.ToJson());
-using var stream = new MemoryStream();
-document.Save(stream);
-stream.Position = 0;
-var restored = BridgeDocument.Load(stream);
-if (ids.Length != 1 || restored.GetBlock("settings").Get<double>("speed") != 2)
-    throw new Exception("Quickstart failed.");
+var d = BridgeDocument.Create("factory");
+d.AddBlock("settings", "simulation.settings", BridgeValue.Parse("{\"speed\":1}"));
+if (d.ContainsBlock("settings") && d.HasField("settings", "speed"))
+    d.Set("settings", "speed", d.Get<double>("settings", "speed") * 2);
+if (d.Get<double>("settings", "speed") != 2) throw new Exception("Ошибка примера");
+Console.WriteLine("speed=2");
 ```
 
-Parse/Load бросают BridgeException; TryParse/TryLoad возвращают Result с диагностикой. BridgeValue и query projections — независимые неизменяемые snapshots. Изменения DTO применяются явно через SetBlockData после регистрации конвертера; полный пример в [API](docs/api.md).
+Полный маршрут с SaveAtomic → Exists → Load → Get/Set → повторным открытием: [первый файл .NET](docs/wiki/Getting-Started-NET.md). Установка UPM по Git URL, TextAsset и runnable MonoBehaviour: [Unity](docs/wiki/Getting-Started-Unity.md). Документация содержит 8 рецептов, FAQ, DTO/AOT и диагностику missing/null/type mismatch.
+
+Репозиторий опубликован: https://github.com/SerhGameDev/Bridge. NuGet, GitHub Release и теги версии не публиковались. Wiki включена, но её хранилище ещё не инициализировано; до публикации ссылки ведут на полный набор docs/wiki. Эти файлы — единый источник; [синхронизация](docs/wiki-sync.md).
 
 ## Проверки
 
 ```text
 dotnet restore Bridge.sln
-dotnet build Bridge.sln -c Release
-dotnet test Bridge.sln -c Release
-dotnet run --project samples/Bridge.Console.Sample -c Release -- --performance
+dotnet build Bridge.sln -c Release --no-restore
+dotnet test Bridge.sln -c Release --no-build
+pwsh -File tools/Verify-Snippets.ps1
 dotnet pack src/Bridge.Core/Bridge.Core.csproj -c Release -o work/packages
 ```
 
-Настроен CI .NET для Windows/Linux, удалённый прогон ещё не выполнялся. Локальные проверки записаны в [отчётах этапов](docs/stages/). Unity/IL2CPP требуют отдельного редактора и не объявляются частью hosted CI.
+CI настроен на Windows/Linux. Актуальные результаты, Unity/IL2CPP ограничения и команды — в [отчёте v0.2](docs/verification-report-v0.2.md). [Исторический отчёт v0.1](docs/verification-report.md) описывает состояние до публикации репозитория.

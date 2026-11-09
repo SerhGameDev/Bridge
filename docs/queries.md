@@ -1,6 +1,6 @@
 # LINQ и сериализуемые запросы
 
-Blocks реализует IEnumerable<BridgeBlock>. System.Linq выполняется локальным C# кодом. Fluent API использует неизменяемый BridgeQuerySpec (type/id/fields/limit). JSON не принимает произвольные выражения, IQueryable или JsonPath.
+Blocks реализует IEnumerable<BridgeBlock>. System.Linq выполняется локальным C# кодом. Fluent API использует неизменяемый BridgeQuerySpec (type или types/id/fields/limit). JSON не принимает произвольные выражения, IQueryable или JsonPath.
 
 ```csharp
 using System;
@@ -23,4 +23,4 @@ SelectFields выбирает верхнеуровневые поля объек
 
 BridgeSelection/BridgeProjection — независимые неизменяемые snapshots. Их JSON содержит bridgeVersion/documentId и только выбранные блоки с type/schemaVersion/data. refs и неизвестные расширения источника не включаются. Результат можно разобрать как самостоятельный BridgeDocument.
 
-JSON queryVersion 1 разрешает только queryVersion/type/id/fields/limit; иные операции/версии/типы дают QUERY_SPEC. Авторизация принадлежит приложению. Performance smoke 1k/10k запускается Console Sample с `--performance`; [отчёт этапа 3](stages/03-query.md) содержит реальные измерения без аппаратного SLA.
+JSON queryVersion 1 разрешает только queryVersion/type/id/fields/limit. QueryVersion 2 разрешает queryVersion/types/id/fields/limit и требует массив types. WhereTypes использует OR внутри списка, AND с ID; повторный type-фильтр заменяет предыдущий, пустой список даёт пустой результат. Single-type specs сохраняют v1. Неизвестные операции/версии/типы дают QUERY_SPEC. Авторизация принадлежит приложению. Performance smoke 1k/10k/50k запускается Console Sample с `--performance`; [отчёт v0.2](stages/v0.2-03-query-lifecycle.md) содержит реальные измерения без аппаратного SLA.

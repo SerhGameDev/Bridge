@@ -21,6 +21,9 @@ $packagePath = (Join-Path $repo 'Packages\com.serhgamedev.bridge.core').Replace(
 $sample = Join-Path $repo 'Packages\com.serhgamedev.bridge.core\Samples~\BasicUsage'
 New-Item -ItemType Directory -Path "$project\Assets\BridgeSmoke" -Force | Out-Null
 Copy-Item -Path "$sample\*" -Destination "$project\Assets\BridgeSmoke" -Recurse -Force
+$beginner = Join-Path $repo 'Packages/com.serhgamedev.bridge.core/Samples~/Beginner'
+New-Item -ItemType Directory -Path "$project/Assets/BridgeBeginner" -Force | Out-Null
+Copy-Item -Path "$beginner/*" -Destination "$project/Assets/BridgeBeginner" -Recurse -Force
 $unityArgs = @('-batchmode','-nographics','-projectPath',"`"$project`"",'-logFile',"`"$project\$Mode.log`"")
 if ($Mode -eq 'EditMode') {
     if (Test-Path -LiteralPath "$project\test-results.xml") { Remove-Item -LiteralPath "$project\test-results.xml" }

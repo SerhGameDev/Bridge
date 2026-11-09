@@ -1,4 +1,4 @@
-# API Bridge.Core 0.1
+# API Bridge.Core 0.2
 
 Типы находятся в namespace Bridge.Core. Newtonsoft DOM скрыт из публичных сигнатур. Core работает с данными и не выполняет команды/выражения из JSON.
 
@@ -62,7 +62,7 @@ if (document.GetBlock("settings").Get<double>("speed") != 3) throw new Exception
 public sealed class Settings { public double Speed { get; set; } }
 ```
 
-Registry принадлежит документу и не сериализуется; после загрузки DTO регистрируются заново. Конвертер должен создавать независимый DTO. SetBlockData полностью заменяет data; сохранение дополнительных полей при DTO update — задача конвертера. См. [AOT](aot.md).
+Registry принадлежит документу и не сериализуется. Используйте .UseSerializers(sharedRegistry) после Create/Parse/Load(Stream), либо BridgeFile.Load(path, serializers: sharedRegistry). Таблица регистраций копируется; изменения одного документа не меняют другой. Делегаты и состояние их замыканий не клонируются. Конвертер должен создавать независимый DTO. SetBlockData полностью заменяет data; сохранение дополнительных полей при DTO update — задача конвертера. См. [AOT](aot.md).
 
 ## Запись
 
@@ -81,3 +81,5 @@ if (loaded.GetBlock("message").Deserialize<string>() != "Привет") throw ne
 ```
 
 Ошибки Get/Set/Deserialize/SetBlockData включают известные DocumentId и Source; путь к данным блока записан как JSON Pointer. Parser diagnostics сохраняют собственный Newtonsoft path. Некорректный Unicode (непарные surrogates) отвергается, числовые typed read соблюдают точность целевого типа. Повторный Register<T> заменяет конвертер этого типа.
+
+Удобный API v0.2 и полные примеры: [блоки/поля](wiki/Working-with-Blocks.md), [файлы](wiki/Working-with-Files.md), [общие DTO](wiki/DTO-and-AOT.md). Removed handles сообщают BLOCK_REMOVED; Id/SchemaVersion остаются историческими, ранее выданные BridgeValue snapshots валидны.
