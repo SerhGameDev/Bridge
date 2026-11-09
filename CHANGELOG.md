@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.2.0 — кандидат, NuGet/Release/tag не опубликованы
+
+- BridgeFile.Exists/Load/TryLoad/Save/SaveAtomic/TrySaveAtomic и различимые ошибки файла/JSON/схемы.
+- ContainsBlock/HasField и document-level Get/Set/TryGet/TryRead; null/missing/type mismatch документированы.
+- UseSerializers и Clone для повторно используемых явных AOT-safe конвертеров с изоляцией таблиц документов.
+- WhereTypes, строгий QuerySpec v2 для multiple/empty types, сохранение v1 для старых запросов.
+- BLOCK_REMOVED для устаревших handles; кэш ordinal Blocks с инвалидацией Add/Remove.
+- Beginner console/Unity TextAsset samples; RU/EN вход, 15 Wiki source pages, 25 исполняемых snippets, проверка JSON/Markdown links.
+- Публичный GitHub репозиторий подключён; итоговые фактические проверки и ограничения в docs/verification-report-v0.2.md.
+
+Миграция: старые stream и block API сохранены. После удаления используйте новый handle; изменения старого теперь явно запрещены. Для общего registry применяйте UseSerializers после Parse/Load(Stream) или именованный serializers у BridgeFile.Load. Документ/изменяемый registry не thread-safe. Библиотека сохраняет bridgeVersion=1.
+
 ## 0.1.0 — локальный кандидат, не опубликован
 
 - Строгий Bridge JSON v1, диагностика/лимиты, точные числа и сохранение расширений.

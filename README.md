@@ -1,49 +1,24 @@
 # Bridge.Core
 
-Bridge.Core stores blocks and named references in standard JSON. It targets **netstandard2.1**, provides ordinary LINQ and bounded serializable queries, and contains no UnityEngine dependency. MIT, copyright 2026 SershDev.
+Bridge.Core is a netstandard2.1 library for versioned JSON block documents, explicit references, LINQ and bounded serializable queries. MIT. The core has no UnityEngine dependency.
 
-[Русская документация](README.ru.md) · [Format](docs/format-v1.md) · [API](docs/api.md) · [Queries](docs/queries.md) · [References](docs/references.md) · [Unity/AOT](docs/unity-compatibility.md)
+**[Start here](docs/wiki/Getting-Started-English.md)** · [Русский](README.ru.md) · [API](docs/api.md) · [Format](docs/format-v1.md)
 
-## Local installation
-
-Version 0.1.0 is a local release candidate. No GitHub repository, NuGet package or release has been published. Add a project reference to `src/Bridge.Core/Bridge.Core.csproj` from this checkout, or build a local package with `dotnet pack -c Release -o work/packages` and add that directory as a NuGet source. Do not assume a similarly named public package belongs to this project.
-
-For Unity use Package Manager **Add package from disk** and `Packages/com.serhgamedev.bridge.core/package.json`. Core uses shared source with .NET and the official Unity Newtonsoft dependency. Exact tested Editor and IL2CPP versions are listed in [Unity compatibility](docs/unity-compatibility.md).
-
-## Quickstart
-
-Complete console example: parse, modify, query, save and reload UTF-8 data.
+v0.2 is developed on feature/core-v0.2-developer-experience. Reference src/Bridge.Core/Bridge.Core.csproj from that checkout, or run `dotnet run --project samples/Bridge.Console.Beginner -c Release` for the complete file round-trip. Expected: BEGINNER_PASS: speed=2; projected=1.
 
 ```csharp
 using System;
-using System.IO;
-using System.Linq;
 using Bridge.Core;
-
-var document = BridgeDocument.Parse("{\"bridgeVersion\":1,\"documentId\":\"demo\",\"blocks\":{\"settings\":{\"type\":\"settings\",\"schemaVersion\":1,\"data\":{\"speed\":1,\"note\":\"private\"}}}}");
-var block = document.GetBlock("settings");
-block.Set("speed", block.Get<double>("speed") + 1);
-var ids = document.Blocks.Where(b => b.Type == "settings").Select(b => b.Id).ToArray();
-var selection = document.Query().WhereType("settings").SelectFields("speed").Limit(10).Execute();
-Console.WriteLine(selection.ToJson());
-using var stream = new MemoryStream();
-document.Save(stream);
-stream.Position = 0;
-var restored = BridgeDocument.Load(stream);
-if (ids.Length != 1 || restored.GetBlock("settings").Get<double>("speed") != 2)
-    throw new Exception("Quickstart failed.");
+var d = BridgeDocument.Create("factory");
+d.AddBlock("settings", "simulation.settings", BridgeValue.Parse("{\"speed\":1}"));
+if (d.ContainsBlock("settings") && d.HasField("settings", "speed"))
+    d.Set("settings", "speed", d.Get<double>("settings", "speed") * 2);
+if (d.Get<double>("settings", "speed") != 2) throw new Exception("Example failed");
+Console.WriteLine("speed=2");
 ```
 
-Parse/Load throw BridgeException for input failures; TryParse/TryLoad return BridgeResult<T> and diagnostics. JSON values and projections are detached immutable snapshots. DTOs need an explicitly registered converter. Mutations are explicit; see [API](docs/api.md).
+IDs and direct field names are ordinal and case sensitive. HasField treats null as present. TryGet returns false for missing only; type failures throw BridgeException. Use TryRead for diagnostic results. BridgeFile provides Exists/Load/TryLoad/Save/SaveAtomic; Exists does not validate JSON or guarantee a later read. DTO converters are explicit and reusable with isolated document registration tables. WhereTypes supports OR filters and keeps QuerySpec v1 compatible; multi-type specs use v2.
 
-## Build and checks
+For Unity Git UPM installation and a runnable TextAsset MonoBehaviour see [Unity](docs/wiki/Getting-Started-Unity.md). [Cookbook](docs/wiki/Cookbook.md) and [FAQ](docs/wiki/FAQ.md) give practical examples. No NuGet package, GitHub Release or version tag has been published. The repository is public. Wiki is enabled but its separate Git storage is not initialized; docs/wiki is the complete documentation source until publication. [Wiki sync](docs/wiki-sync.md).
 
-```text
-dotnet restore Bridge.sln
-dotnet build Bridge.sln -c Release
-dotnet test Bridge.sln -c Release
-dotnet run --project samples/Bridge.Console.Sample -c Release -- --performance
-dotnet pack src/Bridge.Core/Bridge.Core.csproj -c Release -o work/packages
-```
-
-CI is configured for .NET on Windows/Linux; no GitHub run has occurred. Local evidence is in [stage reports](docs/stages/). Unity checks require a licensed installed Editor and are not part of the hosted .NET workflow.
+Build: dotnet restore, dotnet build -c Release, dotnet test -c Release. Validate documentation with tools/Verify-Snippets.ps1; pack locally with dotnet pack -c Release -o work/packages. See the [v0.2 verification report](docs/verification-report-v0.2.md) for actual CI/Unity results and limitations.

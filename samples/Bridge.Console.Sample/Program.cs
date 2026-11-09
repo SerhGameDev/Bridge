@@ -34,22 +34,6 @@ document.GetBlock("factory.layout").SetReference("escape", new BridgeReference("
 var rejected = document.ResolveReference("factory.layout", "escape", resolver, "factory.bridge.json");
 if (rejected.Success || rejected.Diagnostics[0].Code != "REFERENCE_PATH") throw new Exception("Sandbox check failed.");
 Console.WriteLine("External palette and sandbox PASS");
-if (args.Contains("--performance"))
-{
-    foreach (int count in new[] { 1000, 10000 })
-    {
-        var large = BridgeDocument.Create("performance");
-        for (int i = 0; i < count; i++) large.AddBlock(i.ToString("D5"), i % 2 == 0 ? "even" : "odd", BridgeValue.Parse("{\"value\":1,\"excluded\":2}"));
-        long memory = GC.GetAllocatedBytesForCurrentThread(); var timer = Stopwatch.StartNew();
-        var result = large.Query().WhereType("even").SelectFields("value").Execute();
-        timer.Stop();
-        if (result.Blocks.Count != count / 2) throw new Exception("Performance result count failed.");
-        Console.WriteLine($"Performance {count}: {timer.Elapsed.TotalMilliseconds:F3} ms; allocated {GC.GetAllocatedBytesForCurrentThread() - memory} bytes; selected {result.Blocks.Count}");
-    }
-}
+if (args.Contains("--performance")) PerformanceSmoke.Run();
 
-public sealed class SimulationSettings
-{
-    public double Speed { get; set; }
-    public double Gravity { get; set; }
-}
+public sealed class SimulationSettings { public double Speed { get; set; } public double Gravity { get; set; } }

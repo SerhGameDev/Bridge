@@ -1,11 +1,26 @@
 {
   "name": "com.serhgamedev.bridge.core",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "displayName": "Bridge.Core",
   "description": "JSON block documents, projections and bounded document references without UnityEngine dependencies.",
   "unity": "6000.6",
-  "author": { "name": "SershDev" },
+  "author": {
+    "name": "SershDev"
+  },
   "license": "MIT",
-  "dependencies": { "com.unity.nuget.newtonsoft-json": "3.2.2" },
-  "samples": [{ "displayName": "Basic Usage and AOT Smoke", "description": "Explicit DTO converters and runnable player smoke, including a WebGL build helper.", "path": "Samples~/BasicUsage" }]
+  "dependencies": {
+    "com.unity.nuget.newtonsoft-json": "3.2.2"
+  },
+  "samples": [
+    {
+      "displayName": "Basic Usage and AOT Smoke",
+      "description": "Explicit DTO converters and runnable player smoke, including a WebGL build helper.",
+      "path": "Samples~/BasicUsage"
+    },
+    {
+      "displayName": "Beginner TextAsset",
+      "description": "Attach BridgeBeginner to a GameObject and assign a TextAsset.",
+      "path": "Samples~/Beginner"
+    }
+  ]
 }

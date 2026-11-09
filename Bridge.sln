@@ -15,6 +15,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{DED7
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bridge.Console.Sample", "samples\Bridge.Console.Sample\Bridge.Console.Sample.csproj", "{B98C0A7C-C2E0-4AF1-8BD0-84E4913BE7F4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bridge.Console.Beginner", "samples\Bridge.Console.Beginner\Bridge.Console.Beginner.csproj", "{1F66F229-3456-4434-AE68-A916FE81A1C3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -36,10 +38,15 @@ Global
 		{B98C0A7C-C2E0-4AF1-8BD0-84E4913BE7F4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B98C0A7C-C2E0-4AF1-8BD0-84E4913BE7F4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B98C0A7C-C2E0-4AF1-8BD0-84E4913BE7F4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1F66F229-3456-4434-AE68-A916FE81A1C3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1F66F229-3456-4434-AE68-A916FE81A1C3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1F66F229-3456-4434-AE68-A916FE81A1C3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1F66F229-3456-4434-AE68-A916FE81A1C3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{A4ABB46D-AFE7-43C3-A054-341004040E07} = {5351E8B4-C0E5-4603-9F6E-70899A7E3177}
 		{72E0EF00-12EC-4E10-B137-861E52B216E9} = {1A953166-59BF-4B8D-B764-F374AC6B11F6}
 		{B98C0A7C-C2E0-4AF1-8BD0-84E4913BE7F4} = {DED77883-84BC-4636-8195-3CEC5E6CC0B2}
+		{1F66F229-3456-4434-AE68-A916FE81A1C3} = {DED77883-84BC-4636-8195-3CEC5E6CC0B2}
 	EndGlobalSection
 EndGlobal

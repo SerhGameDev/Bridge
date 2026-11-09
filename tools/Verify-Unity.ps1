@@ -1,17 +1,21 @@
 param(
     [Parameter(Mandatory=$true)][string]$UnityEditor,
-    [ValidateSet('EditMode','WebGLBuild')][string]$Mode = 'EditMode'
+    [ValidateSet('EditMode','WebGLBuild')][string]$Mode = 'EditMode',
+    [string]$PackageUrl,
+    [ValidatePattern('^[A-Za-z0-9-]*$')][string]$ProjectSuffix = ''
 )
 $ErrorActionPreference = 'Stop'
 $repo = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $version = (Get-Item -LiteralPath $UnityEditor).VersionInfo.ProductVersion.Split('_')[0]
 if ($version -notmatch '^\d+\.\d+\.\d+[abfp]\d+$') { throw "Unexpected Unity version: $version" }
-$project = Join-Path $repo "work\unity\$version"
+$hostName = if ($ProjectSuffix) { "$version-$ProjectSuffix" } else { $version }
+$project = Join-Path $repo "work\unity\$hostName"
 New-Item -ItemType Directory -Path "$project\Assets", "$project\Packages", "$project\ProjectSettings" -Force | Out-Null
 $packagePath = (Join-Path $repo 'Packages\com.serhgamedev.bridge.core').Replace('\','/')
+$dependency = if ($PackageUrl) { $PackageUrl } else { "file:$packagePath" }
 @{
     dependencies = @{
-        'com.serhgamedev.bridge.core' = "file:$packagePath"
+        'com.serhgamedev.bridge.core' = $dependency
         'com.unity.test-framework' = '1.8.0'
         'com.unity.modules.jsonserialize' = '1.0.0'
     }
@@ -21,6 +25,9 @@ $packagePath = (Join-Path $repo 'Packages\com.serhgamedev.bridge.core').Replace(
 $sample = Join-Path $repo 'Packages\com.serhgamedev.bridge.core\Samples~\BasicUsage'
 New-Item -ItemType Directory -Path "$project\Assets\BridgeSmoke" -Force | Out-Null
 Copy-Item -Path "$sample\*" -Destination "$project\Assets\BridgeSmoke" -Recurse -Force
+$beginner = Join-Path $repo 'Packages/com.serhgamedev.bridge.core/Samples~/Beginner'
+New-Item -ItemType Directory -Path "$project/Assets/BridgeBeginner" -Force | Out-Null
+Copy-Item -Path "$beginner/*" -Destination "$project/Assets/BridgeBeginner" -Recurse -Force
 $unityArgs = @('-batchmode','-nographics','-projectPath',"`"$project`"",'-logFile',"`"$project\$Mode.log`"")
 if ($Mode -eq 'EditMode') {
     if (Test-Path -LiteralPath "$project\test-results.xml") { Remove-Item -LiteralPath "$project\test-results.xml" }

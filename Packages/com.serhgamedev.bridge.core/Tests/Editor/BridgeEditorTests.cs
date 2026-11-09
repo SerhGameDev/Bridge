@@ -9,6 +9,25 @@ namespace Bridge.Core.EditorTests
     public class BridgeEditorTests
     {
         private sealed class Settings { public double Speed; }
+        [Test] public void MultiTypesAndRemovedHandlesAreExplicit()
+        {
+            var doc = BridgeDocument.Create("d"); var old = doc.AddBlock("b", "t", BridgeValue.Parse("{\"x\":1}"));
+            doc.AddBlock("a", "u", BridgeValue.Parse("{\"x\":2}"));
+            var spec = doc.Query().WhereTypes("t", "u").SelectFields("x").Spec;
+            Assert.AreEqual(2, doc.Query(BridgeQuerySpec.FromJson(spec.ToJson())).Execute().Blocks.Count);
+            var snapshot = old.Data; doc.RemoveBlock("b");
+            Assert.Throws<BridgeException>(() => old.Set("x", 5)); Assert.AreEqual(1, snapshot.Get<int>("x"));
+        }
+        [Test] public void SharedRegistryCopiesAreIsolated()
+        {
+            var registry = new BridgeSerializer();
+            registry.Register<Settings>(v => new Settings { Speed = v.Get<double>("speed") }, s => BridgeValue.Parse("{}").WithField("speed", BridgeValue.From(s.Speed)));
+            var first = BridgeDocument.Create("a").UseSerializers(registry);
+            first.AddBlock("b", "t", BridgeValue.Parse("{\"speed\":2}"));
+            var second = BridgeDocument.Parse(first.ToJson()).UseSerializers(registry);
+            first.Serializers.Register<Settings>(_ => new Settings { Speed = 99 }, _ => BridgeValue.Null);
+            Assert.AreEqual(2, second.GetBlock("b").Deserialize<Settings>().Speed);
+        }
         [Test] public void CoreHasNoUnityEngineAssemblyReference()
         { Assert.IsFalse(typeof(BridgeDocument).Assembly.GetReferencedAssemblies().Any(a => a.Name.StartsWith("UnityEngine", StringComparison.Ordinal))); }
         [Test] public void StrictJsonRejectsDuplicateKeysAndTrailingCommas()

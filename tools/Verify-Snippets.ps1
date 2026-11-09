@@ -1,6 +1,6 @@
 $ErrorActionPreference = 'Stop'
 $repo = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
-$files = @((Join-Path $repo 'README.md'), (Join-Path $repo 'README.ru.md')) + @(Get-ChildItem (Join-Path $repo 'docs') -Filter '*.md' | Select-Object -ExpandProperty FullName)
+$files = @((Join-Path $repo 'README.md'), (Join-Path $repo 'README.ru.md')) + @(Get-ChildItem (Join-Path $repo 'docs') -Filter '*.md' -Recurse | Where-Object { $_.FullName -notmatch '[\\/]stages[\\/]' } | Select-Object -ExpandProperty FullName)
 $results = @()
 $index = 0
 foreach ($file in $files) {
@@ -21,3 +21,5 @@ foreach ($file in $files) {
 if ($index -eq 0) { throw 'No C# snippets were found.' }
 $results | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $repo 'work\snippets\results.json') -Encoding utf8
 Write-Output "Documentation snippets PASS: $index"
+& dotnet run --project (Join-Path $repo 'tools/Bridge.Docs.Checks/Bridge.Docs.Checks.csproj') -c Release -- $repo
+if ($LASTEXITCODE -ne 0) { throw 'Markdown links or JSON examples failed.' }

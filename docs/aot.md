@@ -2,7 +2,7 @@
 
 Core не использует dynamic, Reflection.Emit, Expression.Compile, JIT-only генерацию или reflection serializer для DTO. Встроенное typed чтение ограничено JSON-примитивами и BridgeValue. DTO используют BridgeSerializer.Register<T> с парой функций; полный пример — в [API](api.md).
 
-Регистрация принадлежит документу и выполняется снова после загрузки. Не создавайте CLR-типы по строковым именам из недоверенного JSON. Core не интерпретирует `$type` и не включает TypeNameHandling.
+Регистрация принадлежит документу и не сериализуется. Для переиспользования используйте .UseSerializers(registry) после Create/Parse/Load(Stream) либо BridgeFile.Load(path, serializers: registry). Каждый документ получает копию таблицы; делегаты должны быть stateless или синхронизированы приложением. Не создавайте CLR-типы по строковым именам из недоверенного JSON. Core не интерпретирует `$type` и не включает TypeNameHandling.
 
 Конвертер должен статически обращаться к конструктору и членам DTO. Sample также помечает DTO `[UnityEngine.Scripting.Preserve]`. Если приложение подключает типы только косвенно, оно отвечает за Preserve/link.xml. Core не может автоматически сохранять неизвестные пользовательские типы. Unity-атрибуты остаются в приложении/sample.
 

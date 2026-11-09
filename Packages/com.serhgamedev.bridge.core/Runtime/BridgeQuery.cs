@@ -8,15 +8,24 @@ namespace Bridge.Core
 {
     public sealed class BridgeQuerySpec
     {
-        public string? Type { get; }
+        public string? Type => Types?.Count == 1 ? Types[0] : null;
+        public IReadOnlyList<string>? Types { get; }
         public string? Id { get; }
         public IReadOnlyList<string>? Fields { get; }
         public int? Limit { get; }
         public BridgeQuerySpec(string? type = null, string? id = null, IEnumerable<string>? fields = null, int? limit = null)
+            : this(type == null ? null : new[] { type }, id, fields, limit, true) { }
+        private BridgeQuerySpec(IEnumerable<string>? types, string? id, IEnumerable<string>? fields, int? limit, bool _)
         {
-            if (type != null && string.IsNullOrWhiteSpace(type) || id != null && string.IsNullOrWhiteSpace(id)) throw new ArgumentException("Type and ID filters must be nonempty.");
+            if (id != null && string.IsNullOrWhiteSpace(id)) throw new ArgumentException("ID filter must be nonempty.");
             if (limit < 0) throw new ArgumentOutOfRangeException(nameof(limit));
-            Type = type; Id = id; Limit = limit;
+            if (types != null)
+            {
+                var names = types.ToArray();
+                if (names.Any(string.IsNullOrWhiteSpace)) throw new ArgumentException("Types must contain nonempty strings.", nameof(types));
+                Types = Array.AsReadOnly(names.Distinct(StringComparer.Ordinal).ToArray());
+            }
+            Id = id; Limit = limit;
             if (fields != null)
             {
                 var names = fields.ToArray();
@@ -24,10 +33,16 @@ namespace Bridge.Core
                 Fields = Array.AsReadOnly(names.Distinct(StringComparer.Ordinal).ToArray());
             }
         }
+        public static BridgeQuerySpec ForTypes(IEnumerable<string> types, string? id = null, IEnumerable<string>? fields = null, int? limit = null)
+            => Build(types ?? throw new ArgumentNullException(nameof(types)), id, fields, limit);
+        internal static BridgeQuerySpec Build(IEnumerable<string>? types, string? id, IEnumerable<string>? fields, int? limit)
+            => new BridgeQuerySpec(types, id, fields, limit, true);
         public string ToJson()
         {
-            var json = new JObject { ["queryVersion"] = new JRaw("1") };
-            if (Type != null) json["type"] = Type;
+            bool multiple = Types != null && Types.Count != 1;
+            var json = new JObject { ["queryVersion"] = new JRaw(multiple ? "2" : "1") };
+            if (multiple) json["types"] = new JArray(Types!);
+            else if (Type != null) json["type"] = Type;
             if (Id != null) json["id"] = Id;
             if (Fields != null) json["fields"] = new JArray(Fields);
             if (Limit != null) json["limit"] = new JRaw(Limit.Value.ToString(System.Globalization.CultureInfo.InvariantCulture));
@@ -36,9 +51,16 @@ namespace Bridge.Core
         public static BridgeQuerySpec FromJson(string json, BridgeReadOptions? options = null)
         {
             var token = InternalJson.Parse(json ?? throw new ArgumentNullException(nameof(json)), options ?? new BridgeReadOptions(), null);
-            BridgeException Invalid() => InternalJson.Error("QUERY_SPEC", "Expected queryVersion 1 and only type/id/fields/limit operations.");
-            if (!(token is JObject obj) || obj.Properties().Any(p => !new[] { "queryVersion", "type", "id", "fields", "limit" }.Contains(p.Name))
-                || !InternalJson.IsInteger(obj["queryVersion"], out int version) || version != 1) throw Invalid();
+            BridgeException Invalid() => InternalJson.Error("QUERY_SPEC", "Expected queryVersion 1 (type) or 2 (types) and only declared operations.");
+            if (!(token is JObject obj) || !InternalJson.IsInteger(obj["queryVersion"], out int version) || (version != 1 && version != 2)) throw Invalid();
+            string typeKey = version == 1 ? "type" : "types";
+            if (obj.Properties().Any(p => !new[] { "queryVersion", typeKey, "id", "fields", "limit" }.Contains(p.Name))) throw Invalid();
+            string[]? types = null;
+            if (version == 2)
+            {
+                if (!(obj["types"] is JArray values) || values.Any(v => v.Type != JTokenType.String || string.IsNullOrWhiteSpace((string?)v))) throw Invalid();
+                types = values.Select(v => ((string)v)!).ToArray();
+            }
             foreach (string name in new[] { "type", "id" })
                 if (obj.Property(name) != null && (obj[name]?.Type != JTokenType.String || string.IsNullOrWhiteSpace((string?)obj[name]))) throw Invalid();
             string[]? fields = null;
@@ -53,7 +75,8 @@ namespace Bridge.Core
                 if (!InternalJson.IsInteger(obj["limit"], out int count) || count < 0) throw Invalid();
                 limit = count;
             }
-            return new BridgeQuerySpec((string?)obj["type"], (string?)obj["id"], fields, limit);
+            return version == 1 ? new BridgeQuerySpec((string?)obj["type"], (string?)obj["id"], fields, limit)
+                : ForTypes(types!, (string?)obj["id"], fields, limit);
         }
     }
 
@@ -62,13 +85,14 @@ namespace Bridge.Core
         private readonly BridgeDocument document;
         public BridgeQuerySpec Spec { get; }
         internal BridgeQuery(BridgeDocument document, BridgeQuerySpec spec) { this.document = document; Spec = spec; }
-        public BridgeQuery WhereType(string type) => new BridgeQuery(document, new BridgeQuerySpec(type, Spec.Id, Spec.Fields, Spec.Limit));
-        public BridgeQuery WhereId(string id) => new BridgeQuery(document, new BridgeQuerySpec(Spec.Type, id, Spec.Fields, Spec.Limit));
-        public BridgeQuery SelectFields(params string[] fields) => new BridgeQuery(document, new BridgeQuerySpec(Spec.Type, Spec.Id, fields ?? throw new ArgumentNullException(nameof(fields)), Spec.Limit));
-        public BridgeQuery Limit(int limit) => new BridgeQuery(document, new BridgeQuerySpec(Spec.Type, Spec.Id, Spec.Fields, limit));
+        public BridgeQuery WhereType(string type) => WhereTypes(type ?? throw new ArgumentNullException(nameof(type)));
+        public BridgeQuery WhereTypes(params string[] types) => new BridgeQuery(document, BridgeQuerySpec.ForTypes(types, Spec.Id, Spec.Fields, Spec.Limit));
+        public BridgeQuery WhereId(string id) => new BridgeQuery(document, BridgeQuerySpec.Build(Spec.Types, id, Spec.Fields, Spec.Limit));
+        public BridgeQuery SelectFields(params string[] fields) => new BridgeQuery(document, BridgeQuerySpec.Build(Spec.Types, Spec.Id, fields ?? throw new ArgumentNullException(nameof(fields)), Spec.Limit));
+        public BridgeQuery Limit(int limit) => new BridgeQuery(document, BridgeQuerySpec.Build(Spec.Types, Spec.Id, Spec.Fields, limit));
         public BridgeSelection Execute()
         {
-            var selected = document.Blocks.Where(b => (Spec.Type == null || b.Type == Spec.Type) && (Spec.Id == null || b.Id == Spec.Id));
+            var selected = document.Blocks.Where(b => (Spec.Types == null || Spec.Types.Contains(b.Type, StringComparer.Ordinal)) && (Spec.Id == null || b.Id == Spec.Id));
             if (Spec.Limit.HasValue) selected = selected.Take(Spec.Limit.Value);
             var results = new List<BridgeProjection>();
             foreach (var block in selected)

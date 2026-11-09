@@ -1,0 +1,22 @@
+using System;
+using System.IO;
+using System.Linq;
+using Bridge.Core;
+
+var path = args.Length == 0 ? Path.Combine(Path.GetTempPath(), "bridge-beginner-" + Guid.NewGuid().ToString("N") + ".bridge.json") : args[0];
+var document = BridgeDocument.Create("factory");
+document.AddBlock("settings", "simulation.settings", BridgeValue.Parse("{\"speed\":1,\"privateNote\":\"hidden\"}"));
+BridgeFile.SaveAtomic(document, path);
+if (!BridgeFile.Exists(path)) throw new Exception("File not created.");
+var loaded = BridgeFile.TryLoad(path);
+if (!loaded.Success) throw new BridgeException(loaded.Diagnostics);
+document = loaded.Value;
+if (!document.ContainsBlock("settings") || !document.HasField("settings", "speed")) throw new Exception("Missing settings.");
+if (!document.TryGet<double>("settings", "speed", out var speed)) throw new Exception("Missing speed.");
+document.Set("settings", "speed", speed * 2);
+var ids = document.Blocks.Where(b => b.Type == "simulation.settings").Select(b => b.Id).ToArray();
+var result = document.Query().WhereTypes("simulation.settings", "scene.layout").SelectFields("speed").Limit(10).Execute();
+BridgeFile.SaveAtomic(document, path);
+if (BridgeFile.Load(path).Get<double>("settings", "speed") != 2 || ids.Length != 1 || result.ToJson().Contains("privateNote")) throw new Exception("Round-trip/query failed.");
+Console.WriteLine("BEGINNER_PASS: speed=2; projected=" + result.Blocks.Count);
+if (args.Length == 0) File.Delete(path);
