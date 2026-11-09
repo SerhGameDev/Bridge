@@ -50,7 +50,8 @@ namespace Bridge.Runtime
         public BridgeHost Build()
         {
             Mutable();
-            var host = new BridgeHost(name, sources, commandInstances, dispatcher ?? new SerializedBridgeDispatcher(options.MaxPendingRequests), dispatcher == null || ownsDispatcher, options.Copy());
+            var registry = new BridgeCommandRegistry(commandInstances, codecs.Clone(), typedCommands);
+            var host = new BridgeHost(name, sources, commandInstances, dispatcher ?? new SerializedBridgeDispatcher(options.MaxPendingRequests), dispatcher == null || ownsDispatcher, options.Copy(), registry);
             built = true; return host;
         }
     }
@@ -65,10 +66,10 @@ namespace Bridge.Runtime
         internal readonly CancellationTokenSource Stop = new CancellationTokenSource();
         private readonly bool ownsDispatcher;
         private int disposed;
-        internal BridgeHost(string name, IDictionary<string, SourceRegistration> sources, IEnumerable<object> commands, IBridgeDispatcher dispatcher, bool ownsDispatcher, BridgeHostOptions options)
+        internal BridgeHost(string name, IDictionary<string, SourceRegistration> sources, IEnumerable<object> commands, IBridgeDispatcher dispatcher, bool ownsDispatcher, BridgeHostOptions options, BridgeCommandRegistry registry)
         {
             Name = name; Sources = new ReadOnlyDictionary<string, SourceRegistration>(new Dictionary<string, SourceRegistration>(sources, StringComparer.Ordinal));
-            CommandInstances = commands.ToArray(); Dispatcher = dispatcher; this.ownsDispatcher = ownsDispatcher; Options = options;
+            CommandInstances = commands.ToArray(); Dispatcher = dispatcher; this.ownsDispatcher = ownsDispatcher; Options = options; Registry = registry;
         }
         public void Dispose()
         { if (Interlocked.Exchange(ref disposed, 1) == 0) { Stop.Cancel(); if (ownsDispatcher) Dispatcher.Dispose(); } }
