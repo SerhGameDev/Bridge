@@ -12,29 +12,47 @@ namespace Bridge.Runtime
     public sealed partial class BridgeHost
     {
         private int pending;
+        private readonly AsyncLocal<int> dispatchDepth = new AsyncLocal<int>();
         internal static int Bytes(BridgeValue value) => Encoding.UTF8.GetByteCount(value.ToJson());
-        internal async Task<BridgeCommandResult> Respond(BridgeRequestContext context, Func<CancellationToken, Task<BridgeValue>> action, BridgeValue? payload = null)
+        internal async Task<BridgeCommandResult> Respond(BridgeRequestContext context, Func<CancellationToken, Task<BridgeValue>> action, BridgeValue? payload = null, string auditOperation = "request")
         {
             if (context == null) throw new ArgumentNullException(nameof(context));
             string operationId = Guid.NewGuid().ToString("N");
-            BridgeCommandResult Error(BridgeCommandStatus status, string code) => new BridgeCommandResult(status, context.RequestId, operationId, code: code);
+            string? exceptionType = null;
+            BridgeCommandResult Finish(BridgeCommandResult result)
+            {
+                if (Options.AuditCapacity > 0) lock (auditLock)
+                {
+                    audit.Enqueue(new BridgeAuditEntry(context, result, auditOperation, exceptionType));
+                    while (audit.Count > Options.AuditCapacity) audit.Dequeue();
+                }
+                return result;
+            }
+            BridgeCommandResult Error(BridgeCommandStatus status, string code) => Finish(new BridgeCommandResult(status, context.RequestId, operationId, code: code));
             if (IsDisposed) return Error(BridgeCommandStatus.Rejected, "HOST_STOPPED");
+            if (dispatchDepth.Value != 0) return Error(BridgeCommandStatus.Rejected, "REENTRANT_REQUEST");
             if (Interlocked.Increment(ref pending) > Options.MaxPendingRequests) { Interlocked.Decrement(ref pending); return Error(BridgeCommandStatus.Rejected, "BUSY"); }
             using var linked = CancellationTokenSource.CreateLinkedTokenSource(context.CancellationToken, Stop.Token);
             linked.CancelAfter(Options.RequestTimeout);
             try
             {
                 if (payload != null && Bytes(payload) > Options.MaxRequestBytes) return Error(BridgeCommandStatus.Rejected, "REQUEST_LIMIT");
-                var data = await Dispatcher.InvokeAsync(action, linked.Token).ConfigureAwait(false);
+                var data = await Dispatcher.InvokeAsync(async token =>
+                {
+                    dispatchDepth.Value++;
+                    try { return await action(token); }
+                    finally { dispatchDepth.Value--; }
+                }, linked.Token).ConfigureAwait(false);
                 linked.Token.ThrowIfCancellationRequested();
                 var result = new BridgeCommandResult(BridgeCommandStatus.Completed, context.RequestId, operationId, data);
-                return Bytes(result.ToValue()) > Options.MaxResponseBytes ? Error(BridgeCommandStatus.Failed, "RESPONSE_LIMIT") : result;
+                return Bytes(result.ToValue()) > Options.MaxResponseBytes ? Error(BridgeCommandStatus.Failed, "RESPONSE_LIMIT") : Finish(result);
             }
             catch (OperationCanceledException) { return Error(BridgeCommandStatus.Cancelled, IsDisposed ? "HOST_STOPPED" : context.CancellationToken.IsCancellationRequested ? "REQUEST_CANCELLED" : "REQUEST_TIMEOUT"); }
             catch (BridgeBindingException ex) { return Error(ex.Code == "INVALID_RESULT" ? BridgeCommandStatus.Failed : BridgeCommandStatus.Rejected, ex.Code); }
             catch (BridgeDispatchException) { return Error(BridgeCommandStatus.Rejected, "BUSY"); }
             catch (ObjectDisposedException) { return Error(BridgeCommandStatus.Rejected, "HOST_STOPPED"); }
-            catch (Exception ex) when (!(ex is OutOfMemoryException) && !(ex is AccessViolationException)) { return Error(BridgeCommandStatus.Failed, "OPERATION_FAILED"); }
+            catch (BridgeHandlerException ex) { exceptionType = ex.HandlerType; return Error(BridgeCommandStatus.Failed, "HANDLER_FAILED"); }
+            catch (Exception ex) when (!(ex is OutOfMemoryException) && !(ex is AccessViolationException)) { exceptionType = ex.GetType().FullName; return Error(BridgeCommandStatus.Failed, "OPERATION_FAILED"); }
             finally { Interlocked.Decrement(ref pending); }
         }
         public Task<BridgeCommandResult> DiscoverAsync(BridgeRequestContext context)
@@ -45,7 +63,7 @@ namespace Bridge.Runtime
                     .Select(s => Json.Obj(("name", BridgeValue.From(s.Key)), ("types", BridgeValue.Array(s.Value.Policy.Fields.Where(f => s.Value.Policy.Types.Contains(f.Key) && f.Value.Length > 0).OrderBy(f => f.Key, StringComparer.Ordinal)
                         .Select(f => Json.Obj(("type", BridgeValue.From(f.Key)), ("fields", Json.Strings(f.Value))))))));
                 return Task.FromResult(Json.Obj(("commands", BridgeValue.Array(commands)), ("sources", BridgeValue.Array(sources))));
-            });
+            }, auditOperation: "discover");
         public Task<BridgeCommandResult> QueryAsync(string source, BridgeQuerySpec spec, BridgeRequestContext context)
         {
             if (source == null) throw new ArgumentNullException(nameof(source));
@@ -83,7 +101,7 @@ namespace Bridge.Runtime
                 var projection = BridgeValue.Parse(result.ToJson());
                 if (Bytes(projection) > policy.MaxResponseBytes) throw new BridgeBindingException("RESPONSE_LIMIT");
                 return projection;
-            }, BridgeValue.Parse(spec.ToJson()));
+            }, BridgeValue.Parse(spec.ToJson()), "query");
         }
     }
 }

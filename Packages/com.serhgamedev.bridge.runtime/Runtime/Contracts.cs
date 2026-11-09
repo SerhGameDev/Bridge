@@ -32,10 +32,11 @@ namespace Bridge.Runtime
         public int MaxRequestBytes { get; set; } = 65536;
         public int MaxResponseBytes { get; set; } = 1048576;
         public int MaxPendingRequests { get; set; } = 64;
+        public int AuditCapacity { get; set; } = 0;
         public TimeSpan RequestTimeout { get; set; } = TimeSpan.FromSeconds(30);
         internal BridgeHostOptions Copy()
         {
-            if (MaxRequestBytes < 1 || MaxResponseBytes < 1024 || MaxPendingRequests < 1 || RequestTimeout <= TimeSpan.Zero || RequestTimeout.TotalMilliseconds > int.MaxValue)
+            if (MaxRequestBytes < 1 || MaxResponseBytes < 1024 || MaxPendingRequests < 1 || AuditCapacity < 0 || AuditCapacity > 10000 || RequestTimeout <= TimeSpan.Zero || RequestTimeout.TotalMilliseconds > int.MaxValue)
                 throw new ArgumentOutOfRangeException(nameof(BridgeHostOptions));
             return (BridgeHostOptions)MemberwiseClone();
         }
