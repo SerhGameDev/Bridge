@@ -25,6 +25,13 @@ namespace Bridge.Core
 
     public sealed partial class BridgeDocument
     {
+        private BridgeBlock FieldBlock(string blockId, string fieldName)
+        {
+            if (blocks.TryGetValue(blockId, out var block)) return block;
+            string Escape(string value) => value.Replace("~", "~0").Replace("/", "~1");
+            throw InternalJson.Error("BLOCK_NOT_FOUND", $"Block '{blockId}' not found while accessing field '{fieldName}'.", Source,
+                "/blocks/" + Escape(blockId) + "/data/" + Escape(fieldName), DocumentId);
+        }
         /// <summary>Copies registrations. Later registration changes are local to each document.</summary>
         public BridgeDocument UseSerializers(BridgeSerializer serializers)
         {
@@ -45,13 +52,13 @@ namespace Bridge.Core
         {
             BridgeArguments.Name(blockId, nameof(blockId));
             BridgeArguments.Name(fieldName, nameof(fieldName));
-            return GetBlock(blockId).Get<T>(fieldName);
+            return FieldBlock(blockId, fieldName).Get<T>(fieldName);
         }
         public void Set<T>(string blockId, string fieldName, T value)
         {
             BridgeArguments.Name(blockId, nameof(blockId));
             BridgeArguments.Name(fieldName, nameof(fieldName));
-            GetBlock(blockId).Set(fieldName, value);
+            FieldBlock(blockId, fieldName).Set(fieldName, value);
         }
         /// <summary>False only for missing block/field. Type/conversion failures throw BridgeException.</summary>
         public bool TryGet<T>(string blockId, string fieldName, out T value)
@@ -60,7 +67,7 @@ namespace Bridge.Core
             BridgeArguments.Name(fieldName, nameof(fieldName));
             if (!blocks.TryGetValue(blockId, out var block)) { value = default!; return false; }
             // A non-object is a type failure, not an absent field.
-            if (block.Data.Kind == BridgeValueKind.Object && !block.HasField(fieldName)) { value = default!; return false; }
+            if (block.Definition["data"] is JObject && !block.HasField(fieldName)) { value = default!; return false; }
             value = block.Get<T>(fieldName); return true;
         }
         public BridgeResult<T> TryRead<T>(string blockId, string fieldName)

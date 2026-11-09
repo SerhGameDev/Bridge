@@ -33,6 +33,8 @@ public class ConvenienceTests : IDisposable
         Assert.Equal("factory", failure.Diagnostics[0].DocumentId); Assert.Equal("/blocks/settings/data/nil", failure.Diagnostics[0].Path);
         Assert.Equal("FIELD_NOT_FOUND", doc.TryRead<int>("settings", "absent").Diagnostics[0].Code);
         Assert.Equal("BLOCK_NOT_FOUND", doc.TryRead<int>("absent", "speed").Diagnostics[0].Code);
+        Assert.Equal("/blocks/absent/data/speed", doc.TryRead<int>("absent", "speed").Diagnostics[0].Path);
+        Assert.ThrowsAny<ArgumentException>(() => BridgeFile.TryLoad("bad\0path"));
         Assert.Equal(before, doc.ToJson());
         doc.Set("settings", "speed", 2d); Assert.Equal(2d, doc.Get<double>("settings", "speed"));
         Assert.False(doc.TryRead<int>("absent", "speed").Success);
@@ -101,5 +103,12 @@ public class ConvenienceTests : IDisposable
             Assert.Empty(Directory.GetFiles(root, ".bridge-*.tmp"));
         }
         finally { File.SetAttributes(FilePath, FileAttributes.Normal); }
+    }
+    [Fact] public void SerializationFailureNeverTouchesExistingFile()
+    {
+        var doc = Document(); BridgeFile.Save(doc, FilePath); string original = File.ReadAllText(FilePath);
+        doc.AddBlock("invalid", "t", BridgeValue.Object(new[] { new System.Collections.Generic.KeyValuePair<string, BridgeValue>("\uD800", BridgeValue.Null) }));
+        Assert.Throws<BridgeException>(() => BridgeFile.SaveAtomic(doc, FilePath));
+        Assert.Equal(original, File.ReadAllText(FilePath)); Assert.Empty(Directory.GetFiles(root, ".bridge-*.tmp"));
     }
 }

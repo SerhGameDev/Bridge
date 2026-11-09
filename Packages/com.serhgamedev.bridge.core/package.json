@@ -1,6 +1,6 @@
 {
   "name": "com.serhgamedev.bridge.core",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "displayName": "Bridge.Core",
   "description": "JSON block documents, projections and bounded document references without UnityEngine dependencies.",
   "unity": "6000.6",
@@ -24,3 +24,4 @@
     }
   ]
 }
+
