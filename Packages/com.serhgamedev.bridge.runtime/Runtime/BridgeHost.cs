@@ -72,6 +72,6 @@ namespace Bridge.Runtime
             CommandInstances = commands.ToArray(); Dispatcher = dispatcher; this.ownsDispatcher = ownsDispatcher; Options = options; Registry = registry;
         }
         public void Dispose()
-        { if (Interlocked.Exchange(ref disposed, 1) == 0) { Stop.Cancel(); if (ownsDispatcher) Dispatcher.Dispose(); } }
+        { if (Interlocked.Exchange(ref disposed, 1) == 0) { try { Stop.Cancel(); } finally { if (ownsDispatcher) Dispatcher.Dispose(); } } }
     }
 }

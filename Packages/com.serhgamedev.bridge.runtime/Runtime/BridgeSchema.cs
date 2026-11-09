@@ -39,6 +39,7 @@ namespace Bridge.Runtime
                     || !schema.TryGetProperty("properties", out var properties) || properties!.Kind != BridgeValueKind.Object || properties.Properties.Count > 128) { Invalid(); return; }
                 foreach (var property in properties.Properties.Values) Definition(property, depth + 1);
                 if (schema.TryGetProperty("required", out var required) && (required!.Kind != BridgeValueKind.Array || required.Items.Any(v => v.Kind != BridgeValueKind.String || !properties.Properties.ContainsKey(v.As<string>())))) Invalid();
+                if (required != null && required.Items.Select(v => v.ToJson()).Distinct(StringComparer.Ordinal).Count() != required.Items.Count) Invalid();
             }
             if (type == "array")
             {
@@ -46,10 +47,11 @@ namespace Bridge.Runtime
                 Definition(items!, depth + 1);
             }
             foreach (string key in new[] { "minimum", "maximum" })
-                if (schema.TryGetProperty(key, out var bound) && bound!.Kind != BridgeValueKind.Number) Invalid();
+                if (schema.TryGetProperty(key, out var bound)) { if (bound!.Kind != BridgeValueKind.Number) Invalid(); else _ = bound.As<double>(); }
             if (schema.TryGetProperty("minimum", out var min) && schema.TryGetProperty("maximum", out var max) && min!.As<double>() > max!.As<double>()) Invalid();
             if (schema.TryGetProperty("maxLength", out var length) && (length!.Kind != BridgeValueKind.Number || length.As<int>() < 0)) Invalid();
             if (schema.TryGetProperty("enum", out var values) && (type != "string" || values!.Kind != BridgeValueKind.Array || values.Items.Count == 0 || values.Items.Any(v => !Matches(v, Json.Obj(("type", BridgeValue.From(type))))))) Invalid();
+            if (values != null && values.Items.Select(v => v.ToJson()).Distinct(StringComparer.Ordinal).Count() != values.Items.Count) Invalid();
         }
         internal static bool Matches(BridgeValue value, BridgeValue schema)
         {

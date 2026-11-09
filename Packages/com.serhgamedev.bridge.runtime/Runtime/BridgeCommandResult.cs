@@ -26,6 +26,7 @@ namespace Bridge.Runtime
             : code == "RESPONSE_LIMIT" ? "Response exceeds the configured limit."
             : code == "BUSY" ? "Request queue is full."
             : code == "HOST_STOPPED" ? "Host is stopped."
+            : code == "REENTRANT_REQUEST" ? "Nested requests on the same host are not supported."
             : code == "REQUEST_TIMEOUT" ? "Request timeout elapsed; cancellation is cooperative."
             : code == "REQUEST_CANCELLED" ? "Request cancelled; side effects are not rolled back."
             : "Operation failed.";
