@@ -1,0 +1,1 @@
+{"name":"Bridge.Unity.Demo.Editor","references":["Bridge.Core","Bridge.Runtime","Bridge.Unity","Bridge.Unity.Demo"],"includePlatforms":["Editor"]}

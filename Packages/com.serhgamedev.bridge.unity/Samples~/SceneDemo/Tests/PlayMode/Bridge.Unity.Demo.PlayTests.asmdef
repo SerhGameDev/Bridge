@@ -1,0 +1,1 @@
+{"name":"Bridge.Unity.Demo.PlayTests","references":["Bridge.Core","Bridge.Runtime","Bridge.Unity","Bridge.Unity.Demo"],"optionalUnityReferences":["TestAssemblies"]}

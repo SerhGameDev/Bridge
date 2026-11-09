@@ -11,3 +11,5 @@ AuditCapacity0 по умолчанию выключает audit; при вклю
 Файлы: Runtime CommandExecution.cs, общий Respond/Contracts/Result, ExecutionTests.cs и Console sample. Проверки: Release0warnings/errors, Core109/109 + Runtime36/36 PASS. Тесты role negative cases, no unauthorized effects, coherent concurrent reads/writes, bounded pending queue, cancellation/disposal/timeout, no false Completed/rollback, sanitized exceptions/bounded audit/no automatic retries, reentrancy. Console реально выполняет команды без документов/MCP, затем BridgeFile/Core query/controlled update с сохранением privateNote закрытым.
 
 Следующий этап после CI/PR — R5 Unity owner-thread adapter, demo и настоящие players. Runtime не имеет Unity/MCP references.
+
+Финальный regression после исправления self-cancellation и output DTO: Runtime **37/37**, Core109/109; CI42606835845 PASS на Windows/Ubuntu. PR6 merged, integration f21f7344fec404a4bf9a3dc8d7032c0d96af93f1.

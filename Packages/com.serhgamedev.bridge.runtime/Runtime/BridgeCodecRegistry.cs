@@ -24,7 +24,7 @@ namespace Bridge.Runtime
             internal Codec(BridgeValue schema, Func<BridgeValue, T> read, Func<T, BridgeValue> write) { Schema = schema; this.read = read; this.write = write; }
             public object? Read(BridgeValue value) => read(value);
             public BridgeValue Write(object? value) => value == null ? BridgeValue.Null : write((T)value);
-            public async Task<object?> Await(Task task) => await ((Task<T>)task).ConfigureAwait(false);
+            public async Task<object?> Await(Task task) => await ((Task<T>)task);
         }
         private readonly Dictionary<Type, IBridgeCodec> codecs = new Dictionary<Type, IBridgeCodec>();
         public BridgeCodecRegistry()
