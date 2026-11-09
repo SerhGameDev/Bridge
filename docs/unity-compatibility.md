@@ -1,14 +1,14 @@
 # Unity / AOT compatibility
 
-## Фактические проверки, 2026-11-08
+## Фактические проверки v0.2, 2026-11-09
 
 | Среда | Проверка | Результат |
 | --- | --- | --- |
 | Windows, .NET SDK 8.0.408, NuGet Newtonsoft.Json 13.0.4 | netstandard2.1, unit tests, console | PASS; подробности в отчётах этапов |
-| Unity 6000.6.7f1 (b22767f04f04) | Local UPM import, 10 EditMode NUnit tests | PASS 10/10, 0 skipped |
-| Unity 6000.7.0a2 (83605ec097c0) | Local UPM import, 10 EditMode NUnit tests | PASS 10/10, 0 skipped; alpha редактор |
+| Unity 6000.6.7f1 (b22767f04f04) | Local UPM import, 12 EditMode NUnit tests | PASS 12/12, 0 skipped |
+| Unity 6000.7.0a2 (83605ec097c0) | Local UPM import, 12 EditMode NUnit tests | PASS 12/12, 0 skipped; alpha редактор |
 | Unity 7 (7000.x) | Editor / player | SKIPPED: редактор не установлен |
-| Unity 6000.6.7f1 WebGL IL2CPP, High stripping | Build + player execution | PASS: Build exit 0; браузер WebGL 2.0, BRIDGE_SMOKE_PASS (повторный запуск 2026-11-08 22:07 MSK) |
+| Unity 6000.6.7f1 WebGL IL2CPP, High stripping | Build + player execution | PASS: Build exit 0; WebGL 2.0, BRIDGE_SMOKE_PASS и BRIDGE_BEGINNER_PASS: speed=2 (2026-11-09 12:58 MSK) |
 
 Проверенные номера приведены точно по executable metadata. Успешная alpha-проверка не обещает совместимость с будущими final версиями. Unity 7 не заявляется проверенным.
 
@@ -22,7 +22,7 @@ UPM использует официальный `com.unity.nuget.newtonsoft-json
 
 ## Установка и запуск проверок
 
-1. В Package Manager выберите Add package from disk и `Packages/com.serhgamedev.bridge.core/package.json` этого checkout. Для manifest dependency используйте `file:` с локальным абсолютным путём. Git URL пока не опубликован.
+1. В Package Manager выберите Add package from disk и `Packages/com.serhgamedev.bridge.core/package.json` этого checkout. Git URL для v0.2: `https://github.com/SerhGameDev/Bridge.git?path=/Packages/com.serhgamedev.bridge.core#feature/core-v0.2-developer-experience`. Ветка и package path опубликованы; main пока остаётся v0.1. Для manifest dependency также доступен `file:` с локальным абсолютным путём.
 2. Добавьте `"testables": ["com.serhgamedev.bridge.core"]` в manifest host-проекта. Запустите `Bridge.Core.EditorTests` в EditMode Test Runner.
 3. Для отдельного чистого host-проекта выполните из корня репозитория:
 

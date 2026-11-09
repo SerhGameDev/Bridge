@@ -37,4 +37,3 @@ Console.WriteLine("External palette and sandbox PASS");
 if (args.Contains("--performance")) PerformanceSmoke.Run();
 
 public sealed class SimulationSettings { public double Speed { get; set; } public double Gravity { get; set; } }
-

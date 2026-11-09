@@ -1,17 +1,21 @@
 param(
     [Parameter(Mandatory=$true)][string]$UnityEditor,
-    [ValidateSet('EditMode','WebGLBuild')][string]$Mode = 'EditMode'
+    [ValidateSet('EditMode','WebGLBuild')][string]$Mode = 'EditMode',
+    [string]$PackageUrl,
+    [ValidatePattern('^[A-Za-z0-9-]*$')][string]$ProjectSuffix = ''
 )
 $ErrorActionPreference = 'Stop'
 $repo = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $version = (Get-Item -LiteralPath $UnityEditor).VersionInfo.ProductVersion.Split('_')[0]
 if ($version -notmatch '^\d+\.\d+\.\d+[abfp]\d+$') { throw "Unexpected Unity version: $version" }
-$project = Join-Path $repo "work\unity\$version"
+$hostName = if ($ProjectSuffix) { "$version-$ProjectSuffix" } else { $version }
+$project = Join-Path $repo "work\unity\$hostName"
 New-Item -ItemType Directory -Path "$project\Assets", "$project\Packages", "$project\ProjectSettings" -Force | Out-Null
 $packagePath = (Join-Path $repo 'Packages\com.serhgamedev.bridge.core').Replace('\','/')
+$dependency = if ($PackageUrl) { $PackageUrl } else { "file:$packagePath" }
 @{
     dependencies = @{
-        'com.serhgamedev.bridge.core' = "file:$packagePath"
+        'com.serhgamedev.bridge.core' = $dependency
         'com.unity.test-framework' = '1.8.0'
         'com.unity.modules.jsonserialize' = '1.0.0'
     }
