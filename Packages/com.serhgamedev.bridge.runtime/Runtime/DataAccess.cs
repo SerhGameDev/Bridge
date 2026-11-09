@@ -82,7 +82,12 @@ namespace Bridge.Runtime
                 var document = snapshot.Document;
                 bool Allowed(BridgeBlock b) => policy.Types.Contains(b.Type) && policy.Fields.TryGetValue(b.Type, out var fields) && fields.Length > 0 && (policy.Blocks == null || policy.Blocks.Contains(b.Id));
                 if (spec.Id != null && (!document.TryGetBlock(spec.Id, out var target) || !Allowed(target!))) throw new BridgeBindingException("NOT_FOUND");
-                var result = BridgeDocument.Create(source); // Public name only: no original documentId/source/revision/extensions/refs.
+                // Build one detached Core JSON value. Repeated document mutations/serialization here
+                // made projection quadratic in block count. Count exact UTF-8 JSON bytes incrementally.
+                var blocks = new Dictionary<string, BridgeValue>(StringComparer.Ordinal);
+                BridgeValue Document() => Json.Obj(("bridgeVersion", BridgeValue.From(1)), ("documentId", BridgeValue.From(source)), ("blocks", BridgeValue.Object(blocks)));
+                long projectedBytes = Bytes(Document());
+                if (projectedBytes > policy.MaxResponseBytes) throw new BridgeBindingException("RESPONSE_LIMIT");
                 int limit = Math.Min(spec.Limit ?? policy.MaxBlocks, policy.MaxBlocks);
                 var selected = document.Blocks.Where(b => Allowed(b) && types.Contains(b.Type, StringComparer.Ordinal) && (spec.Id == null || b.Id == spec.Id)).Take(limit);
                 foreach (var block in selected)
@@ -95,10 +100,12 @@ namespace Bridge.Runtime
                         if (data.TryGetProperty(field, out var value)) projected.Add(field, value!);
                         else if (spec.Fields != null) throw new BridgeBindingException("FIELD_NOT_FOUND");
                     }
-                    result.AddBlock(block.Id, block.Type, BridgeValue.Object(projected));
-                    if (Encoding.UTF8.GetByteCount(result.ToJson()) > policy.MaxResponseBytes) throw new BridgeBindingException("RESPONSE_LIMIT");
+                    var definition = Json.Obj(("type", BridgeValue.From(block.Type)), ("schemaVersion", BridgeValue.From(1)), ("data", BridgeValue.Object(projected)));
+                    projectedBytes += Bytes(BridgeValue.From(block.Id)) + 1L + Bytes(definition) + (blocks.Count == 0 ? 0 : 1);
+                    if (projectedBytes > policy.MaxResponseBytes) throw new BridgeBindingException("RESPONSE_LIMIT");
+                    blocks.Add(block.Id, definition);
                 }
-                var projection = BridgeValue.Parse(result.ToJson());
+                var projection = Document(); // Public source name; no original identity/refs/extensions/revision.
                 if (Bytes(projection) > policy.MaxResponseBytes) throw new BridgeBindingException("RESPONSE_LIMIT");
                 return projection;
             }, BridgeValue.Parse(spec.ToJson()), "query");
