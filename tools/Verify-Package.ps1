@@ -41,7 +41,7 @@ if (restored.GetBlock("a").Get<int>("value") != 3 || document.Query().SelectFiel
 Console.WriteLine("LOCAL_NUGET_PACKAGE_PASS");
 '@ | Set-Content -LiteralPath "$folder\Program.cs" -Encoding utf8
 $previousPackages = $env:NUGET_PACKAGES
-$env:NUGET_PACKAGES = Join-Path $folder 'packages'
+$env:NUGET_PACKAGES = Join-Path $folder ('packages-' + [Guid]::NewGuid().ToString('N'))
 Push-Location $folder
 try {
     & dotnet restore PackageSmoke.csproj --configfile NuGet.Config
