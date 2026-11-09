@@ -9,4 +9,4 @@ Bridge.Core — библиотека C# для данных в JSON. Докум�
 
 Для копирования: [8 рецептов](Cookbook.md). Для поиска: [API](API-Reference.md) и [FAQ](FAQ.md). [English quickstart](Getting-Started-English.md).
 
-Это документация v0.2 в feature-ветке. NuGet-пакет и GitHub Release не опубликованы. Публичная Wiki ещё не инициализирована; основной источник — эти файлы `docs/wiki`. При публикации скрипт Sync-Wiki.ps1 копирует их и переписывает внутренние ссылки под Wiki; правки вносите сюда.
+Core v0.2 принят в main через PR1. [Bridge.Runtime tutorial](runtime/Home.md) — отдельный маршрут команд и данных. NuGet-пакет и GitHub Release не опубликованы. Публичная Wiki ещё не инициализирована; основной источник — эти файлы `docs/wiki`. При публикации скрипт Sync-Wiki.ps1 копирует их и переписывает внутренние ссылки под Wiki; правки вносите сюда.

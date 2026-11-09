@@ -1,9 +1,15 @@
-# Источник документации и публикация Wiki
+# Источник и безопасная публикация Wiki
 
-Единый источник — docs/wiki в основной ветке разработки. Вносите изменения сюда, проверяйте tools/Verify-Snippets.ps1, затем синхронизируйте Wiki перед обновлением версии. Не редактируйте две независимые копии. README ссылается на docs/wiki/Home.md, пока публикация не подтверждена.
+Единый источник — docs/wiki, включая Runtime route в docs/wiki/runtime. README ведут на эти реальные файлы, пока отдельная Wiki публикация не подтверждена. Не поддерживайте две расходящиеся копии.
 
-Проверка 2026-11-09: GitHub REST repo.has_wiki=true, но /wiki перенаправляет на репозиторий, а Bridge.wiki.git отвечает Repository not found. Wiki включена, но отдельное git-хранилище ещё не инициализировано. Доступный GitHub-коннектор не имеет операции создания первой Wiki-страницы; браузерная сессия не авторизована. Публикация не выполнена.
+Проверка2026-11-09: GitHub repo.has_wiki=true, но git ls-remote Bridge.wiki.git отвечает Repository not found. Wiki git storage ещё не инициализировано. Публикация не заявляется; полный Core+Runtime fallback доступен в репозитории.
 
-Чтобы инициализировать: войдите в GitHub, откройте Wiki репозитория SerhGameDev/Bridge и создайте первую страницу Home с одной строкой `<!-- Bridge.Core managed wiki source -->`. Затем из checkout запустите `pwsh -File tools/Sync-Wiki.ps1 -Publish`. Скрипт клонирует отдельный wiki remote, заменяет только управляемые страницы, переписывает ссылки и делает обычный commit/push. Конфликт с чужой страницей или существующим sync-каталогом останавливает синхронизацию; чужие страницы и история не удаляются. Без -Publish скрипт только печатает dry-run сообщение.
+## Dry run
 
-После успешной публикации откройте Home и Sidebar на GitHub, проверьте ссылки, обновите статус публикации в исходной Home и только затем переключите README на действующий Wiki URL. При переносе feature-ветки в main обновите ссылки Git UPM и синхронизации на принятую ветку. Локальный полный маршрут: [Home](wiki/Home.md).
+`pwsh -File tools/Sync-Wiki.ps1` создаёт work/wiki-preview, проверяет локальные ссылки и генерирует Wiki-compatible pages. Root Core pages сохраняют имена, runtime/Home.md становится Runtime-Home, остальные Runtime pages тоже flatten с Runtime- prefix. Внутренние ссылки переписываются под Wiki, ссылки на repository files — на main. Никакой commit/push в dry run нет. Исходники остаются обычными browsable Markdown с относительными links.
+
+## Публикация после инициализации
+
+Владелец может создать первую Home страницу в GitHub Wiki с одной строкой `<!-- Bridge managed wiki source -->`. Затем `pwsh -File tools/Sync-Wiki.ps1 -Publish` сначала генерирует reviewable preview, проверяет remote и клонирует свежий work/wiki-sync. Неуправляемая страница с совпавшим именем либо существующий sync checkout остановят публикацию. Скрипт принимает новый marker и прежний Bridge.Core marker, заменяет только managed pages, не удаляет неизвестные страницы/историю и не использует force push.
+
+После publish проверьте Home/Sidebar/Runtime-Home на GitHub и обновите статус в исходной документации; до этого README не переключаются на вымышленный Wiki URL. В случае collision вручную согласуйте конкретные страницы, не удаляйте чужую Wiki. [Core route](wiki/Home.md) · [Runtime route](wiki/runtime/Home.md).

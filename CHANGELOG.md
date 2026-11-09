@@ -1,6 +1,14 @@
 # Changelog
 
-## 0.2.0 — кандидат, NuGet/Release/tag не опубликованы
+## Bridge.Runtime0.1 — source candidate, без NuGet/Release/tag
+
+- netstandard2.1 host/builder, explicit command attributes, schemas/binding, typed registrar и DTO/enum codecs.
+- Default-deny data policy, Core QuerySpec v1/v2, discovery, fresh snapshots, sanitized results, bounded async dispatcher/cancel/audit.
+- Тонкий Unity UPM dispatcher, реальная Cube Scene Demo, EditMode/PlayMode, Windows Mono Player и WebGL IL2CPP High runtime PASS.
+- Отдельный .NET8 MCP gateway SDK2.4.0, protocol versions2026-07-28/2025-11-25/2025-06-18, реальный built Player compatible-client E2E.
+- Beginner Runtime route,12recipes, runnable snippets, local NuGet consumer checks, safe recursive Wiki preview. Core contract/bridgeVersion=1 сохранены.
+
+## Core0.2.0 — исходники приняты через PR1, NuGet/Release/tag не опубликованы
 
 - BridgeFile.Exists/Load/TryLoad/Save/SaveAtomic/TrySaveAtomic и различимые ошибки файла/JSON/схемы.
 - ContainsBlock/HasField и document-level Get/Set/TryGet/TryRead; null/missing/type mismatch документированы.

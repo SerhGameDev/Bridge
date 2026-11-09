@@ -14,9 +14,9 @@ https://github.com/SerhGameDev/Bridge.git?path=/Packages/com.serhgamedev.bridge.
 
 Импортируйте Samples → Scene Demo и выберите **Bridge → Create Runtime Demo Scene**. Меню создаёт настоящие сцену, Cube prefab и `factory.bridge.json.txt`. Откройте сцену и нажмите Play. Само создание host не включает сеть. Флаг `Self Test` включает проверку spawn/move/delete, разрешений, enum/DTO/typed registrar.
 
-Для своего host:
+Фрагмент внутри своего MonoBehaviour (`myCommands` — ваш заранее созданный объект команд):
 
-```csharp
+```csharp unity-fragment
 var dispatcher = gameObject.AddComponent<Bridge.Unity.UnityBridgeDispatcher>();
 var host = Bridge.Runtime.BridgeHostBuilder.Create("scene")
     .AddCommands(myCommands).UseDispatcher(dispatcher).Build();

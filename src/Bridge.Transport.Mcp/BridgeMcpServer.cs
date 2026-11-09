@@ -6,7 +6,8 @@ using ModelContextProtocol.Protocol;
 using ModelContextProtocol.Server;
 namespace Bridge.Transport.Mcp;
 
-/// <summary>Creates an SDK server on explicitly supplied streams. Does not start it, open a socket or own the endpoint.</summary>
+/// <summary>Creates an SDK transport on explicitly supplied streams (SDK reading starts immediately).
+/// RunAsync starts server processing. Does not open a socket or own the endpoint.</summary>
 public static class BridgeMcpServer
 {
     static readonly string[] Names={"bridge_discover","bridge_execute","bridge_query"};
