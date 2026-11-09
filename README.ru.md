@@ -1,36 +1,48 @@
-# Bridge.Core
+# Bridge: Core и Runtime
 
-Bridge.Core хранит версионированные блоки данных и ссылки в стандартном JSON. Ядро netstandard2.1 подходит для .NET и Unity, использует MIT и не зависит от UnityEngine.
+Core0.2 — версионированные JSON blocks, ссылки и запросы. Runtime0.1 — явно зарегистрированные C# команды и ограниченное чтение этих данных. Оба netstandard2.1, без UnityEngine/MCP; MIT. Unity adapter и .NET MCP gateway — отдельные пакеты.
 
-**[Начать с руководства](docs/wiki/Home.md)** · [English](README.md) · [Технический API](docs/api.md) · [Формат](docs/format-v1.md)
+**[Начать Runtime](docs/wiki/runtime/Home.md)** · [Core tutorial](docs/wiki/Home.md) · [English](README.md) · [API Runtime](docs/wiki/runtime/API-Reference.md)
 
-## Первый пример
+## Первая команда без Unity, MCP и файла
 
-v0.2 разрабатывается в feature/core-v0.2-developer-experience. Добавьте ProjectReference на src/Bridge.Core/Bridge.Core.csproj из checkout этой ветки либо запустите готовое приложение: `dotnet run --project samples/Bridge.Console.Beginner -c Release`.
+Создайте .NET8 console project и ProjectReference на `src/Bridge.Runtime/Bridge.Runtime.csproj` ([точные шаги](docs/wiki/runtime/Installation-NET.md)). Весь Program.cs:
 
 ```csharp
 using System;
 using Bridge.Core;
-var d = BridgeDocument.Create("factory");
-d.AddBlock("settings", "simulation.settings", BridgeValue.Parse("{\"speed\":1}"));
-if (d.ContainsBlock("settings") && d.HasField("settings", "speed"))
-    d.Set("settings", "speed", d.Get<double>("settings", "speed") * 2);
-if (d.Get<double>("settings", "speed") != 2) throw new Exception("Ошибка примера");
-Console.WriteLine("speed=2");
+using Bridge.Runtime;
+using var host = BridgeHostBuilder.Create("demo").AddCommands(new MathCommands()).Build();
+var result = await host.ExecuteLocalAsync("math.add", BridgeValue.Parse("{\"a\":2,\"b\":3}"));
+if (!result.Success) throw new Exception(result.Error!.Code);
+Console.WriteLine("sum=" + result.Data.As<int>());
+public sealed class MathCommands
+{
+    [BridgeCommand("math.add", Permission=BridgePermission.Read)]
+    public int Add(int a, int b) => a + b;
+}
 ```
 
-Полный маршрут с SaveAtomic → Exists → Load → Get/Set → повторным открытием: [первый файл .NET](docs/wiki/Getting-Started-NET.md). Установка UPM по Git URL, TextAsset и runnable MonoBehaviour: [Unity](docs/wiki/Getting-Started-Unity.md). Документация содержит 8 рецептов, FAQ, DTO/AOT и диагностику missing/null/type mismatch.
+Ожидается sum=5. ExecuteLocalAsync — доверенный Admin путь внутри приложения; для внешнего клиента необходим trusted context и явная policy. Build не открывает порт. [Permissions/default deny](docs/wiki/runtime/Security.md).
 
-Репозиторий опубликован: https://github.com/SerhGameDev/Bridge. NuGet, GitHub Release и теги версии не публиковались. Wiki включена, но её хранилище ещё не инициализировано; до публикации ссылки ведут на полный набор docs/wiki. Эти файлы — единый источник; [синхронизация](docs/wiki-sync.md).
+## Пакеты и примеры
 
-## Проверки
+| Пакет | Назначение |
+|---|---|
+| Bridge.Core0.2 | JSON document/block/field, serializers, refs, QuerySpec |
+| Bridge.Runtime0.1 | Host, commands, schemas, discovery/data policy, executor |
+| com.serhgamedev.bridge.unity0.1 | Unity owner-thread dispatcher, Scene Demo |
+| Bridge.Transport.Mcp0.1 | .NET8 stdio gateway, official SDK2.4.0 |
 
-```text
-dotnet restore Bridge.sln
-dotnet build Bridge.sln -c Release --no-restore
-dotnet test Bridge.sln -c Release --no-build
-pwsh -File tools/Verify-Snippets.ps1
-dotnet pack src/Bridge.Core/Bridge.Core.csproj -c Release -o work/packages
-```
+NuGet/UPM registry, tags и Release **не публиковались**. Используйте checkout ProjectReference, [локальные nupkgs](docs/wiki/runtime/Installation-NET.md) или [Git UPM](docs/wiki/runtime/Installation-Unity.md). Core0.2 принят в main через PR1; Core API и bridgeVersion=1 сохранены.
 
-CI настроен на Windows/Linux. Актуальные результаты, Unity/IL2CPP ограничения и команды — в [отчёте v0.2](docs/verification-report-v0.2.md). [Исторический отчёт v0.1](docs/verification-report.md) описывает состояние до публикации репозитория.
+- `dotnet run --project samples/Bridge.Runtime.Console.Sample -c Release` — commands/discovery/BridgeFile/policy/update.
+- [Unity Scene Demo](docs/runtime/unity.md) — настоящие Cube prefab/scene, spawn/move/delete/fresh snapshots.
+- [Готовый Player → MCP → Codex](docs/runtime/mcp.md) — сборка, token/environment, TOML и воспроизводимый SDK client E2E. Личный Codex connected E2E отдельно не заявляется.
+- [12 рецептов и FAQ](docs/wiki/runtime/Cookbook.md), [результаты/cancel](docs/wiki/runtime/Results.md), [расширения](docs/wiki/runtime/Advanced.md), [troubleshooting](docs/wiki/runtime/Troubleshooting.md).
+
+## Проверки и Wiki
+
+`dotnet test Bridge.sln -c Release`, `tools/Verify-Snippets.ps1`, `tools/Verify-RuntimePackages.ps1`, `tools/Verify-RuntimeUnity.ps1`, `tools/Verify-RuntimeMcp.ps1`. CI Windows/Ubuntu, .NET Debug/Release и local package consumers. Фактические платформы/ограничения — [R5](docs/stages/runtime-R5.md), [R6](docs/stages/runtime-R6.md), [итоговая R8 приёмка](docs/verification-report-runtime.md); успешная сборка не заменяет Player runtime test.
+
+Отдельная GitHub Wiki пока не инициализирована: полный [docs/wiki fallback](docs/wiki/runtime/Home.md) доступен в репозитории. [Безопасная dry-run синхронизация](docs/wiki-sync.md). [Changelog](CHANGELOG.md) · [roadmap](docs/runtime/roadmap.md) · [MIT/dependency notices](THIRD-PARTY-NOTICES.md).

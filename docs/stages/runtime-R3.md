@@ -1,0 +1,11 @@
+# Runtime R3 — discovery и данные
+
+Base integration568a3a697a0c83522e3e525d105aa6c2e68d9e22 (R2 PR4, CI42604498198 success). Branch feature/runtime-r3-data. Мини-план: общий result envelope/dispatcher path, filtered discovery, policy-bound Core QuerySpec v1/v2 и security/size tests.
+
+DiscoverAsync(context) и QueryAsync(source,spec,context) работают через общий serial dispatcher. Без явной policy источники скрыты и вообще не читаются. Required Read проверяется Runtime. AllowFields открывает только указанные прямые поля типа; optional block ID allowlist, policy caps и immutable builders. Явные selectors закрытых ID/type/field получают одинаковый NOT_FOUND без подтверждения существования. Запрос без selectors возвращает лишь разрешённые поля; при отсутствии Limit применён MaxBlocks. Разные типы с несовместимыми полями запрашивайте раздельно. Явное отсутствующее разрешённое поле — FIELD_NOT_FOUND, неявный projection пропускает missing поля.
+
+Ответ создаётся как новый BridgeDocument: публичное имя source вместо исходного documentId, только разрешённые блоки/type/data, schemaVersion=1 проекции. Refs, root/block extensions, исходные schema revisions, snapshot time/revision/source path не публикуются. Ссылки никогда не обходятся. Dynamic snapshot читается на dispatcher, не сохраняется в cache; результирующий BridgeValue detached. Внешние исключения источника санитизированы.
+
+BridgeCommandResult общий для discovery/query/будущего execute: status/requestId/operationId/data/error. R3 включает bounded request/response, cancellation и pending gate infrastructure; полная команда/audit/concurrency verification — R4. Host MaxResponseBytes минимум1024 для bounded error envelope, policy MaxResponseBytes ограничивает саму проекцию. Никакого partial result при превышении cap.
+
+Файлы: Runtime BridgeCommandResult.cs/DataAccess.cs/Contracts.cs, DataTests.cs, Console sample. Проверки Release build0warnings/errors, Core109/109 + Runtime28/28 PASS. Тесты default deny до чтения, разные principals, forbidden selectors/v2, original identity/refs/extensions не утекают, block/byte/query caps, missing fields, updated snapshots и sanitized provider exceptions. Console CATALOG_PASS и DATA_PASS: speed=1; privateNote denied. CI/PR проходят до интеграции и R4.
