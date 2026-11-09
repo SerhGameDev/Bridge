@@ -35,7 +35,7 @@ namespace Bridge.Runtime
         public TimeSpan RequestTimeout { get; set; } = TimeSpan.FromSeconds(30);
         internal BridgeHostOptions Copy()
         {
-            if (MaxRequestBytes < 1 || MaxResponseBytes < 1 || MaxPendingRequests < 1 || RequestTimeout <= TimeSpan.Zero || RequestTimeout.TotalMilliseconds > int.MaxValue)
+            if (MaxRequestBytes < 1 || MaxResponseBytes < 1024 || MaxPendingRequests < 1 || RequestTimeout <= TimeSpan.Zero || RequestTimeout.TotalMilliseconds > int.MaxValue)
                 throw new ArgumentOutOfRangeException(nameof(BridgeHostOptions));
             return (BridgeHostOptions)MemberwiseClone();
         }
