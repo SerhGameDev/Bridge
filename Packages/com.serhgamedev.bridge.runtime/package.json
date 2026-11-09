@@ -1,0 +1,1 @@
+{"name":"com.serhgamedev.bridge.runtime","version":"0.1.0","displayName":"Bridge.Runtime","description":"Transport-independent explicit commands and policy-bound data.","unity":"6000.6","author":{"name":"SershDev"},"license":"MIT","dependencies":{"com.serhgamedev.bridge.core":"0.2.0"}}
