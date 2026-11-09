@@ -28,6 +28,7 @@ public class ExecutionTests
         [BridgeCommand("test.wait",Permission=BridgePermission.Read)]
         public async Task<int> Wait() { Entered.TrySetResult(1); await Release.Task; Called++; return 1; }
         [BridgeCommand("test.delay",Permission=BridgePermission.Read)] public async Task<int> Delay(CancellationToken token) { await Task.Delay(10000,token); return 1; }
+        [BridgeCommand("test.self_cancel",Permission=BridgePermission.Read)] public Task<int> SelfCancel() => Task.FromCanceled<int>(new CancellationToken(true));
         [BridgeCommand("test.throw",Permission=BridgePermission.Read)] public string Throw(string text) => throw new InvalidOperationException("SECRET_EXCEPTION_"+text);
         [BridgeCommand("test.large",Permission=BridgePermission.Read)] public string Large() { Called++; return new string('a',5000); }
         [BridgeCommand("test.admin")] public int Admin() { Called++; return 99; }
@@ -94,6 +95,7 @@ public class ExecutionTests
         var timed=await host.ExecuteLocalAsync("test.delay",BridgeValue.Parse("{}")); Assert.Equal("REQUEST_TIMEOUT",timed.Error!.Code); Assert.Equal(BridgeCommandStatus.Cancelled,timed.Status);
         using var stop=new CancellationTokenSource(); stop.Cancel();
         var cancelled=await host.ExecuteLocalAsync("test.admin",BridgeValue.Parse("{}"),stop.Token); Assert.Equal("REQUEST_CANCELLED",cancelled.Error!.Code); Assert.Equal(0,c.Called);
+        var self=await host.ExecuteLocalAsync("test.self_cancel",BridgeValue.Parse("{}")); Assert.Equal("REQUEST_CANCELLED",self.Error!.Code);
     }
     [Fact] public async Task ExceptionsAndAuditNeverExposePayloadsAndRetriesAreNotAutomatic()
     {
@@ -115,5 +117,16 @@ public class ExecutionTests
     {
         var d=Document(); var c=new Commands(d); using var host=Host(c,d,new BridgeHostOptions{MaxRequestBytes=1});
         Assert.Equal("REQUEST_LIMIT",(await host.ExecuteLocalAsync("test.admin",BridgeValue.Parse("{}"))).Error!.Code); Assert.Equal(0,c.Called);
+    }
+    public sealed class View { }
+    [Fact] public async Task InvalidOutputCannotLeakAdditionalDtoFields()
+    {
+        var schema=BridgeValue.Parse("{\"type\":\"object\",\"properties\":{\"visible\":{\"type\":\"integer\"}},\"required\":[\"visible\"],\"additionalProperties\":false}");
+        var codecs=new BridgeCodecRegistry().Register(schema,_=>new View(),_=>BridgeValue.Parse("{\"visible\":1,\"privateNote\":\"SECRET\"}"));
+        int called=0;
+        using var host=BridgeHostBuilder.Create("dto").UseCodecs(codecs).AddCommand<View,View>("dto.invalid",(_,__)=>{called++;return Task.FromResult(new View());}).Build();
+        var result=await host.ExecuteLocalAsync("dto.invalid",BridgeValue.Parse("{\"visible\":1}"));
+        Assert.Equal(BridgeCommandStatus.Failed,result.Status); Assert.Equal("INVALID_RESULT",result.Error!.Code); Assert.DoesNotContain("SECRET",result.ToJson()); Assert.Equal(1,called);
+        Assert.Throws<ArgumentException>(()=>new BridgeCodecRegistry().Register(schema.WithField("required",BridgeValue.Parse("[\"visible\",\"visible\"]")),_=>new View(),_=>BridgeValue.Null));
     }
 }

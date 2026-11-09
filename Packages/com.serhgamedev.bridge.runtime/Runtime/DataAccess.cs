@@ -47,7 +47,7 @@ namespace Bridge.Runtime
                 var result = new BridgeCommandResult(BridgeCommandStatus.Completed, context.RequestId, operationId, data);
                 return Bytes(result.ToValue()) > Options.MaxResponseBytes ? Error(BridgeCommandStatus.Failed, "RESPONSE_LIMIT") : Finish(result);
             }
-            catch (OperationCanceledException) { return Error(BridgeCommandStatus.Cancelled, IsDisposed ? "HOST_STOPPED" : context.CancellationToken.IsCancellationRequested ? "REQUEST_CANCELLED" : "REQUEST_TIMEOUT"); }
+            catch (OperationCanceledException) { return Error(BridgeCommandStatus.Cancelled, IsDisposed ? "HOST_STOPPED" : context.CancellationToken.IsCancellationRequested || !linked.IsCancellationRequested ? "REQUEST_CANCELLED" : "REQUEST_TIMEOUT"); }
             catch (BridgeBindingException ex) { return Error(ex.Code == "INVALID_RESULT" ? BridgeCommandStatus.Failed : BridgeCommandStatus.Rejected, ex.Code); }
             catch (BridgeDispatchException) { return Error(BridgeCommandStatus.Rejected, "BUSY"); }
             catch (ObjectDisposedException) { return Error(BridgeCommandStatus.Rejected, "HOST_STOPPED"); }
