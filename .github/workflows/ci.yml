@@ -29,3 +29,4 @@ jobs:
       - run: ./tools/Verify-Package.ps1
         shell: pwsh
       - run: dotnet pack src/Bridge.Runtime/Bridge.Runtime.csproj -c Release --no-build -o work/packages
+      - run: dotnet pack src/Bridge.Transport.Mcp/Bridge.Transport.Mcp.csproj -c Release --no-build -o work/packages
