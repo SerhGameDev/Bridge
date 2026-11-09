@@ -53,12 +53,13 @@ namespace Bridge.Core
             var definition = new JObject { ["type"] = type, ["schemaVersion"] = new JRaw(schemaVersion.ToString(CultureInfo.InvariantCulture)), ["data"] = data.Token.DeepClone() };
             ((JObject)Root["blocks"]!).Add(id, definition);
             var block = new BridgeBlock(id, definition, schemaVersion) { Serializers = Serializers, DocumentIdContext = DocumentId, SourceContext = Source };
-            blocks.Add(id, block); return block;
+            blocks.Add(id, block); sortedBlocks = null; return block;
         }
         public bool RemoveBlock(string id)
         {
             if (id == null) throw new ArgumentNullException(nameof(id));
-            if (!blocks.Remove(id)) return false;
+            if (!blocks.TryGetValue(id, out var block)) return false;
+            block.MarkRemoved(); blocks.Remove(id); sortedBlocks = null;
             ((JObject)Root["blocks"]!).Remove(id); return true;
         }
         public void SetBlockData<T>(string id, T data) => GetBlock(id).SetData(data);

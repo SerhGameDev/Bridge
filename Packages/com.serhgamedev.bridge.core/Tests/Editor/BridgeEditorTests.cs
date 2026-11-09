@@ -9,6 +9,15 @@ namespace Bridge.Core.EditorTests
     public class BridgeEditorTests
     {
         private sealed class Settings { public double Speed; }
+        [Test] public void MultiTypesAndRemovedHandlesAreExplicit()
+        {
+            var doc = BridgeDocument.Create("d"); var old = doc.AddBlock("b", "t", BridgeValue.Parse("{\"x\":1}"));
+            doc.AddBlock("a", "u", BridgeValue.Parse("{\"x\":2}"));
+            var spec = doc.Query().WhereTypes("t", "u").SelectFields("x").Spec;
+            Assert.AreEqual(2, doc.Query(BridgeQuerySpec.FromJson(spec.ToJson())).Execute().Blocks.Count);
+            var snapshot = old.Data; doc.RemoveBlock("b");
+            Assert.Throws<BridgeException>(() => old.Set("x", 5)); Assert.AreEqual(1, snapshot.Get<int>("x"));
+        }
         [Test] public void SharedRegistryCopiesAreIsolated()
         {
             var registry = new BridgeSerializer();

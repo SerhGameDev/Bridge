@@ -15,7 +15,7 @@ if (!document.ContainsBlock("settings") || !document.HasField("settings", "speed
 if (!document.TryGet<double>("settings", "speed", out var speed)) throw new Exception("Missing speed.");
 document.Set("settings", "speed", speed * 2);
 var ids = document.Blocks.Where(b => b.Type == "simulation.settings").Select(b => b.Id).ToArray();
-var result = document.Query().WhereType("simulation.settings").SelectFields("speed").Limit(10).Execute();
+var result = document.Query().WhereTypes("simulation.settings", "scene.layout").SelectFields("speed").Limit(10).Execute();
 BridgeFile.SaveAtomic(document, path);
 if (BridgeFile.Load(path).Get<double>("settings", "speed") != 2 || ids.Length != 1 || result.ToJson().Contains("privateNote")) throw new Exception("Round-trip/query failed.");
 Console.WriteLine("BEGINNER_PASS: speed=2; projected=" + result.Blocks.Count);

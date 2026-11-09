@@ -10,13 +10,16 @@ namespace Bridge.Core
 {
     public sealed partial class BridgeBlock
     {
-        internal JObject Definition { get; }
+        private readonly JObject definition;
+        private bool removed;
+        internal JObject Definition => !removed ? definition : throw InternalJson.Error("BLOCK_REMOVED", $"Block '{Id}' has been removed.", SourceContext, "/blocks/" + Id.Replace("~", "~0").Replace("/", "~1"), DocumentIdContext);
+        internal void MarkRemoved() => removed = true;
         public string Id { get; }
         public string Type => (string)Definition["type"]!;
         public int SchemaVersion { get; }
         public BridgeValue Data => new BridgeValue(Definition["data"]!);
         internal BridgeBlock(string id, JObject definition, int schemaVersion)
-        { Id = id; Definition = definition; SchemaVersion = schemaVersion; }
+        { Id = id; this.definition = definition; SchemaVersion = schemaVersion; }
     }
 
     public sealed partial class BridgeDocument
@@ -27,7 +30,8 @@ namespace Bridge.Core
         public string DocumentId { get; }
         public string? Source { get; }
         public BridgeSerializer Serializers { get; } = new BridgeSerializer();
-        public IReadOnlyList<BridgeBlock> Blocks => Array.AsReadOnly(blocks.Values.OrderBy(b => b.Id, StringComparer.Ordinal).ToArray());
+        private IReadOnlyList<BridgeBlock>? sortedBlocks;
+        public IReadOnlyList<BridgeBlock> Blocks => sortedBlocks ??= Array.AsReadOnly(blocks.Values.OrderBy(b => b.Id, StringComparer.Ordinal).ToArray());
         private BridgeDocument(JObject root, string? source, BridgeReadOptions options)
         {
             Root = root; Source = source;
